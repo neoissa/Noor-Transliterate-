@@ -237,7 +237,7 @@
                 <h3 class="text-xl font-black text-slate-800 tracking-tight">AI Settings</h3>
                 <button onclick="toggleSettings()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
             </div>
-            <p class="text-sm text-slate-500 mb-6">Provide your <strong>Gemini API key</strong>.</p>
+            <p class="text-sm text-slate-500 mb-6">Provide your <strong>Gemini API key</strong>. We use designated models for preview environments and public models when deployed.</p>
             <div class="space-y-5">
                 <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="w-full p-4 border border-slate-200 rounded-2xl text-sm outline-none shadow-inner">
                 <button onclick="saveApiKey()" class="w-full py-4 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-700 shadow-lg">Save Key</button>
@@ -245,11 +245,24 @@
         </div>
     </div>
 
+    <!-- Error Modal -->
+    <div id="errorModal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl border-t-8 border-red-600">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-black text-slate-800 tracking-tight">Notification</h3>
+                <button onclick="document.getElementById('errorModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
+            </div>
+            <p id="errorMessage" class="text-sm text-slate-600 mb-6 leading-relaxed"></p>
+            <button onclick="document.getElementById('errorModal').classList.add('hidden')" class="w-full py-4 bg-slate-800 text-white rounded-2xl font-black hover:bg-slate-900 shadow-lg">Understood</button>
+        </div>
+    </div>
+
     <script>
         const environmentApiKey = "";
         
         // Environment specific models - Unified to prevent 'Not Found' errors
-        const unifiedModelId = "gemini-2.5-flash-preview-09-2025"; 
+        const canvasModelId = "gemini-2.5-flash-preview-09-2025"; 
+        const publicModelId = "gemini-1.5-flash"; // Fully supported public model
         const ttsModelId = "gemini-2.5-flash-preview-tts"; 
 
         let currentMode = 'standard';
@@ -271,6 +284,8 @@
         const quranResults = document.getElementById('quranResults');
         const keyboardGrid = document.getElementById('keyboardGrid');
         const keyboardSection = document.getElementById('keyboardSection');
+        const errorModal = document.getElementById('errorModal');
+        const errorMessage = document.getElementById('errorMessage');
 
         // Professional Standard Layout Keys
         const keys = [
@@ -289,6 +304,7 @@
         };
         const chatToAr = { "3'": "غ", "3*": "غ", "gh": "غ", "6'": "ظ", "6*": "ظ", "zh": "ظ", "9'": "ض", "9*": "ض", "dh": "ض", "7'": "خ", "7*": "خ", "kh": "خ", "5": "خ", "sh": "ش", "ch": "ش", "4": "ش", "th": "ث", "ee": "ي", "oo": "و", "ou": "و", "uu": "و", "aa": "ا", "2": "أ", "3": "ع", "6": "ط", "7": "ح", "8": "ق", "9": "ص", "a": "ا", "b": "ب", "t": "ت", "j": "ج", "d": "د", "r": "ر", "z": "ز", "s": "س", "f": "ف", "k": "ك", "l": "ل", "m": "م", "n": "ن", "h": "ه", "w": "و", "y": "ي", "i": "ي", "u": "و", "e": "ا", "o": "و" };
 
+        function showError(msg) { errorMessage.innerText = msg; errorModal.classList.remove('hidden'); }
         function toggleSettings() { settingsModal.classList.toggle('hidden'); }
         function saveApiKey() { localStorage.setItem('gemini_api_key', apiKeyInput.value.trim()); toggleSettings(); alert("Saved!"); }
         function setKeyboardTheme(theme) {
@@ -298,8 +314,14 @@
         }
 
         async function callGemini(payload, modelOverride = null) {
+            const hasCustomKey = !!localStorage.getItem('gemini_api_key');
             const userKey = localStorage.getItem('gemini_api_key') || environmentApiKey;
-            const currentModel = modelOverride || unifiedModelId;
+            
+            let currentModel = modelOverride;
+            if (!currentModel) {
+                // Use public model if custom key is provided, otherwise use Canvas preview model
+                currentModel = hasCustomKey ? publicModelId : canvasModelId;
+            }
 
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${userKey}`;
             
@@ -313,9 +335,12 @@
                     });
                     if (!response.ok) {
                         const err = await response.json();
-                        let errorMsg = err.error?.message || "Gemini Error";
+                        let errorMsg = err.error?.message || "Gemini API Connection Error";
                         if (errorMsg.includes("Quota exceeded") || response.status === 429) {
-                            errorMsg = "API Quota Exceeded. The free tier limit was reached, or the selected model is not available on your plan. Try again in a minute.";
+                            errorMsg = "API Quota Exceeded. The free tier limit was reached, or the selected model is not available on your billing plan. Please try again shortly.";
+                        }
+                        if (errorMsg.includes("is not found for API version v1beta")) {
+                             errorMsg = `Model resolution error. The model '${currentModel}' is not supported with your API key tier. Please verify your Google AI Studio configuration.`;
                         }
                         throw new Error(errorMsg);
                     }
@@ -354,7 +379,7 @@
                 const nextEngine = engines[translitFixIndex % engines.length];
                 document.getElementById('translitFixBtn').innerHTML = `<span>✨ Fix Translit (${nextEngine.name})</span>`;
             } catch (e) {
-                alert("AI Fix Error: " + e.message);
+                showError("AI Fix Error: " + e.message);
             } finally {
                 aiLoading.classList.add('hidden');
             }
@@ -374,7 +399,7 @@
                 outputArabicEditable.value = data.arabic;
                 output1.value = data.transliteration;
                 arabicResultSection.classList.remove('hidden');
-            } catch (e) { alert("AI Error: " + e.message); } finally { aiLoading.classList.add('hidden'); }
+            } catch (e) { showError("AI Harakat Fix Error: " + e.message); } finally { aiLoading.classList.add('hidden'); }
         }
 
         async function aiReflectText() {
@@ -385,7 +410,7 @@
                 const result = await callGemini({ contents: [{ parts: [{ text: `Professional linguistic and spiritual reflection on roots of: "${input}"` }] }] });
                 aiInsightsContent.innerText = result.candidates[0].content.parts[0].text;
                 aiInsightsContainer.classList.remove('hidden');
-            } catch (e) { alert("AI Error"); } finally { aiLoading.classList.add('hidden'); }
+            } catch (e) { showError("Reflection Error: " + e.message); } finally { aiLoading.classList.add('hidden'); }
         }
 
         async function aiSpeakText() {
@@ -393,11 +418,9 @@
             if(!input) return;
             aiLoading.classList.remove('hidden');
             try {
-                // If using their own key (on Vercel), the TTS model might fail as it's an internal preview model.
-                // We will attempt it, but fallback gracefully if it fails.
                 const hasCustomKey = !!localStorage.getItem('gemini_api_key');
                 if(hasCustomKey) {
-                    throw new Error("TTS is currently only supported in the internal preview environment.");
+                    throw new Error("TTS is an experimental feature and currently requires the internal preview environment.");
                 }
 
                 const res = await callGemini({
@@ -425,7 +448,7 @@
                 
                 const blob = new Blob([wavHeader, bytes], { type: 'audio/wav' });
                 new Audio(URL.createObjectURL(blob)).play();
-            } catch (e) { alert(e.message || "TTS unavailable."); } finally { aiLoading.classList.add('hidden'); }
+            } catch (e) { showError(e.message || "TTS Request Failed."); } finally { aiLoading.classList.add('hidden'); }
         }
 
         function performFormalTransliteration(text) {
