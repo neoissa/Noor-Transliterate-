@@ -122,7 +122,7 @@
         <div id="aiLoading" class="hidden flex justify-center mb-8">
             <div class="flex items-center gap-3 bg-white px-8 py-4 rounded-2xl shadow-xl border border-slate-100">
                 <div class="loading-spinner"></div>
-                <span class="text-sm font-semibold text-slate-600 italic" id="aiLoadingText">Connecting to Gemini...</span>
+                <span class="text-sm font-semibold text-slate-600 italic" id="aiLoadingText">Connecting to Gemini Engine...</span>
             </div>
         </div>
 
@@ -232,15 +232,25 @@
 
     <!-- API Settings Modal -->
     <div id="settingsModal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
-        <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl border-t-8 border-emerald-600">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border-t-8 border-emerald-600">
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-xl font-black text-slate-800 tracking-tight">AI Settings</h3>
                 <button onclick="toggleSettings()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
             </div>
-            <p class="text-sm text-slate-500 mb-6">Provide your <strong>Gemini API key</strong>. We use designated models for preview environments and public models when deployed.</p>
-            <div class="space-y-5">
-                <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="w-full p-4 border border-slate-200 rounded-2xl text-sm outline-none shadow-inner">
-                <button onclick="saveApiKey()" class="w-full py-4 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-700 shadow-lg">Save Key</button>
+            <p class="text-sm text-slate-500 mb-6">Provide your <strong>Gemini API key</strong> and preferred model ID to bypass quota limitations.</p>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest block mb-2">API Key</label>
+                    <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="w-full p-4 border border-slate-200 rounded-2xl text-sm outline-none shadow-inner">
+                </div>
+                <div>
+                    <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest block mb-2">Text Model ID</label>
+                    <input type="text" id="modelIdInput" placeholder="gemini-1.5-flash-8b" class="w-full p-4 border border-slate-200 rounded-2xl text-sm outline-none shadow-inner">
+                </div>
+                <div class="pt-2">
+                    <button onclick="saveApiSettings()" class="w-full py-4 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-700 shadow-lg transition-all">Save Settings</button>
+                </div>
+                <div class="text-center"><a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[10px] font-black text-blue-500 hover:underline uppercase tracking-widest">Get Free Key ↗</a></div>
             </div>
         </div>
     </div>
@@ -253,7 +263,10 @@
                 <button onclick="document.getElementById('errorModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
             </div>
             <p id="errorMessage" class="text-sm text-slate-600 mb-6 leading-relaxed"></p>
-            <button onclick="document.getElementById('errorModal').classList.add('hidden')" class="w-full py-4 bg-slate-800 text-white rounded-2xl font-black hover:bg-slate-900 shadow-lg">Understood</button>
+            <div class="flex gap-3">
+                <button onclick="document.getElementById('errorModal').classList.add('hidden')" class="flex-1 py-4 bg-slate-800 text-white rounded-2xl font-black hover:bg-slate-900 shadow-md transition-all">Close</button>
+                <button onclick="document.getElementById('errorModal').classList.add('hidden'); toggleSettings();" class="flex-1 py-4 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-700 shadow-md transition-all">Settings</button>
+            </div>
         </div>
     </div>
 
@@ -262,7 +275,6 @@
         
         // Environment specific models - Unified to prevent 'Not Found' errors
         const canvasModelId = "gemini-2.5-flash-preview-09-2025"; 
-        const publicModelId = "gemini-1.5-flash"; // Fully supported public model
         const ttsModelId = "gemini-2.5-flash-preview-tts"; 
 
         let currentMode = 'standard';
@@ -281,6 +293,7 @@
         const aiInsightsContent = document.getElementById('aiInsightsContent');
         const settingsModal = document.getElementById('settingsModal');
         const apiKeyInput = document.getElementById('apiKeyInput');
+        const modelIdInput = document.getElementById('modelIdInput');
         const quranResults = document.getElementById('quranResults');
         const keyboardGrid = document.getElementById('keyboardGrid');
         const keyboardSection = document.getElementById('keyboardSection');
@@ -306,7 +319,24 @@
 
         function showError(msg) { errorMessage.innerText = msg; errorModal.classList.remove('hidden'); }
         function toggleSettings() { settingsModal.classList.toggle('hidden'); }
-        function saveApiKey() { localStorage.setItem('gemini_api_key', apiKeyInput.value.trim()); toggleSettings(); alert("Saved!"); }
+        
+        function saveApiSettings() { 
+            const key = apiKeyInput.value.trim(); 
+            const model = modelIdInput.value.trim() || 'gemini-1.5-flash-8b';
+            
+            if (key) { 
+                localStorage.setItem('gemini_api_key', key); 
+                localStorage.setItem('gemini_model_id', model);
+                toggleSettings(); 
+                alert("API Settings saved successfully!"); 
+            } else { 
+                localStorage.removeItem('gemini_api_key'); 
+                localStorage.removeItem('gemini_model_id');
+                toggleSettings();
+                alert("Settings cleared."); 
+            } 
+        }
+
         function setKeyboardTheme(theme) {
             keyboardSection.classList.remove('kb-theme-white', 'kb-theme-black');
             keyboardSection.classList.add('kb-theme-' + theme);
@@ -316,11 +346,12 @@
         async function callGemini(payload, modelOverride = null) {
             const hasCustomKey = !!localStorage.getItem('gemini_api_key');
             const userKey = localStorage.getItem('gemini_api_key') || environmentApiKey;
+            const customModelId = localStorage.getItem('gemini_model_id') || "gemini-1.5-flash-8b";
             
             let currentModel = modelOverride;
             if (!currentModel) {
-                // Use public model if custom key is provided, otherwise use Canvas preview model
-                currentModel = hasCustomKey ? publicModelId : canvasModelId;
+                // Use custom model ID if a key is provided, else use the Canvas default
+                currentModel = hasCustomKey ? customModelId : canvasModelId;
             }
 
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${userKey}`;
@@ -339,8 +370,8 @@
                         if (errorMsg.includes("Quota exceeded") || response.status === 429) {
                             errorMsg = "API Quota Exceeded. The free tier limit was reached, or the selected model is not available on your billing plan. Please try again shortly.";
                         }
-                        if (errorMsg.includes("is not found for API version v1beta")) {
-                             errorMsg = `Model resolution error. The model '${currentModel}' is not supported with your API key tier. Please verify your Google AI Studio configuration.`;
+                        if (errorMsg.includes("is not found for API version v1beta") || response.status === 404) {
+                             errorMsg = `Model resolution error. The model '${currentModel}' is not supported with your API key tier. Please verify your Google AI Studio configuration and update the Model ID in settings.`;
                         }
                         throw new Error(errorMsg);
                     }
@@ -605,7 +636,14 @@
         }
 
         window.addEventListener('load', () => { 
-            if(localStorage.getItem('gemini_api_key')) apiKeyInput.value = localStorage.getItem('gemini_api_key'); 
+            if(localStorage.getItem('gemini_api_key')) {
+                apiKeyInput.value = localStorage.getItem('gemini_api_key');
+            }
+            if(localStorage.getItem('gemini_model_id')) {
+                modelIdInput.value = localStorage.getItem('gemini_model_id');
+            } else {
+                modelIdInput.value = "gemini-1.5-flash-8b"; // Set the default input value
+            }
             initKeyboard(); fetchQuranMetadata(); setMode('standard'); 
         });
         mainInput.addEventListener('input', process);
