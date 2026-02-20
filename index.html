@@ -246,10 +246,10 @@
                 <div>
                     <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest block mb-2">Text Model</label>
                     <select id="modelIdInput" class="w-full p-4 border border-slate-200 rounded-2xl text-sm outline-none shadow-inner bg-white">
-                        <option value="gemini-1.5-flash-8b">Gemini 1.5 Flash-8B (Most Stable Free Tier)</option>
-                        <option value="gemini-1.5-flash">Gemini 1.5 Flash (Standard)</option>
-                        <option value="gemini-1.5-pro">Gemini 1.5 Pro (Advanced)</option>
-                        <option value="gemini-2.0-flash">Gemini 2.0 Flash (New)</option>
+                        <option value="gemini-1.5-flash-8b">Gemini 1.5 Flash-8B (Guaranteed Free Tier)</option>
+                        <option value="gemini-1.5-flash">Gemini 1.5 Flash (Standard Tier)</option>
+                        <option value="gemini-1.5-pro">Gemini 1.5 Pro (Requires Paid/Advanced Tier)</option>
+                        <option value="gemini-2.0-flash">Gemini 2.0 Flash (Experimental/Paid)</option>
                     </select>
                 </div>
                 <div class="pt-2">
@@ -260,16 +260,16 @@
         </div>
     </div>
 
-    <!-- Error Modal -->
+    <!-- Error/Notice Modal -->
     <div id="errorModal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
         <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl border-t-8 border-red-600">
             <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-black text-slate-800 tracking-tight">Notification</h3>
+                <h3 id="errorModalTitle" class="text-xl font-black text-red-600 tracking-tight">System Notice</h3>
                 <button onclick="document.getElementById('errorModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
             </div>
             <p id="errorMessage" class="text-sm text-slate-600 mb-6 leading-relaxed"></p>
             <div class="flex gap-3">
-                <button onclick="document.getElementById('errorModal').classList.add('hidden')" class="flex-1 py-4 bg-slate-800 text-white rounded-2xl font-black hover:bg-slate-900 shadow-md transition-all">Close</button>
+                <button onclick="document.getElementById('errorModal').classList.add('hidden')" class="flex-1 py-4 bg-slate-800 text-white rounded-2xl font-black hover:bg-slate-900 shadow-md transition-all">Acknowledge</button>
                 <button onclick="document.getElementById('errorModal').classList.add('hidden'); toggleSettings();" class="flex-1 py-4 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-700 shadow-md transition-all">Settings</button>
             </div>
         </div>
@@ -315,7 +315,14 @@
         };
         const chatToAr = { "3'": "غ", "3*": "غ", "gh": "غ", "6'": "ظ", "6*": "ظ", "zh": "ظ", "9'": "ض", "9*": "ض", "dh": "ض", "7'": "خ", "7*": "خ", "kh": "خ", "5": "خ", "sh": "ش", "ch": "ش", "4": "ش", "th": "ث", "ee": "ي", "oo": "و", "ou": "و", "uu": "و", "aa": "ا", "2": "أ", "3": "ع", "6": "ط", "7": "ح", "8": "ق", "9": "ص", "a": "ا", "b": "ب", "t": "ت", "j": "ج", "d": "د", "r": "ر", "z": "ز", "s": "س", "f": "ف", "k": "ك", "l": "ل", "m": "م", "n": "ن", "h": "ه", "w": "و", "y": "ي", "i": "ي", "u": "و", "e": "ا", "o": "و" };
 
-        function showError(msg) { errorMessage.innerText = msg; errorModal.classList.remove('hidden'); }
+        function showNotification(title, msg, isError = true) { 
+            document.getElementById('errorModalTitle').innerText = title;
+            document.getElementById('errorModalTitle').className = isError ? "text-xl font-black text-red-600 tracking-tight" : "text-xl font-black text-amber-500 tracking-tight";
+            errorMessage.innerText = msg; 
+            errorModal.classList.remove('hidden'); 
+        }
+
+        function showError(msg) { showNotification("System Error", msg, true); }
         function toggleSettings() { settingsModal.classList.toggle('hidden'); }
         
         function saveApiSettings() { 
@@ -341,7 +348,7 @@
             localStorage.setItem('kb_theme', theme);
         }
 
-        // --- Simplified, Non-Looping API Fetch ---
+        // --- Resilient, Self-Healing API Fetch ---
         async function callGemini(systemInstruction, userPrompt) {
             const key = localStorage.getItem('gemini_api_key');
             if (!key) {
@@ -349,8 +356,8 @@
                 throw new Error("Please enter your Gemini API Key in the Settings.");
             }
 
-            const model = localStorage.getItem('gemini_model_id') || "gemini-1.5-flash-8b";
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+            let model = localStorage.getItem('gemini_model_id') || "gemini-1.5-flash-8b";
+            let url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
 
             const payload = {
                 contents: [{ role: "user", parts: [{ text: userPrompt }] }],
@@ -358,20 +365,38 @@
                 generationConfig: { temperature: 0.2 }
             };
 
-            const response = await fetch(url, {
+            let response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
             
-            const data = await response.json();
+            let data = await response.json();
 
+            // Tactical Fallback for Unsupported Models (Graceful Degradation)
+            if (!response.ok && response.status === 404 && model !== "gemini-1.5-flash-8b") {
+                console.warn(`[System] Model ${model} rejected by API tier. Auto-routing to stable fallback.`);
+                model = "gemini-1.5-flash-8b";
+                url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+                
+                response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                data = await response.json();
+                
+                // Non-blocking notification of fallback
+                showNotification("Model Downgraded", `Your API key lacks permissions for the originally selected model. The system automatically executed your request using the stable 'Flash-8B' engine instead to prevent failure.`, false);
+            }
+
+            // Final error catch if even the fallback fails
             if (!response.ok) {
                 let errorMsg = data.error?.message || "Unknown API Error";
                 if (response.status === 404) {
-                    errorMsg = `Model Error: "${model}" is not permitted on your API tier or does not exist. Please select 'Gemini 1.5 Flash-8B' in Settings.`;
+                    errorMsg = `Critical Infrastructure Error: The base model '${model}' is entirely inaccessible. Verify your API key validity.`;
                 } else if (response.status === 429 || errorMsg.includes("Quota")) {
-                    errorMsg = "API Quota Exceeded. You have hit the rate limit for this model on your free tier.";
+                    errorMsg = "API Quota Exceeded. You have hit the strict rate limit for your current tier. Please wait a moment.";
                 }
                 throw new Error(errorMsg);
             }
@@ -415,7 +440,7 @@
                 output1.value = data.transliteration;
                 arabicResultSection.classList.remove('hidden');
             } catch (e) { 
-                showError("AI Harakat Fix Error: " + e.message); 
+                if(!e.message.includes("Model Downgraded")) showError("AI Harakat Fix Error: " + e.message); 
             } finally { 
                 aiLoading.classList.add('hidden'); 
             }
@@ -448,7 +473,7 @@
                 const nextEngine = engines[translitFixIndex % engines.length];
                 document.getElementById('translitFixBtn').innerHTML = `<span>✨ Fix Translit (${nextEngine.name})</span>`;
             } catch (e) {
-                showError("AI Fix Error: " + e.message);
+                if(!e.message.includes("Model Downgraded")) showError("AI Fix Error: " + e.message);
             } finally {
                 aiLoading.classList.add('hidden');
             }
@@ -466,7 +491,7 @@
                 aiInsightsContent.innerText = resultText;
                 aiInsightsContainer.classList.remove('hidden');
             } catch (e) { 
-                showError("Reflection Error: " + e.message); 
+                if(!e.message.includes("Model Downgraded")) showError("Reflection Error: " + e.message); 
             } finally { 
                 aiLoading.classList.add('hidden'); 
             }
@@ -632,11 +657,11 @@
             if(localStorage.getItem('gemini_api_key')) {
                 apiKeyInput.value = localStorage.getItem('gemini_api_key');
             }
-            // Explicitly force the safe model on load
-            const savedModel = localStorage.getItem('gemini_model_id') || "gemini-1.5-flash-8b";
-            modelIdInput.value = savedModel;
-            localStorage.setItem('gemini_model_id', savedModel);
-
+            if(localStorage.getItem('gemini_model_id')) {
+                modelIdInput.value = localStorage.getItem('gemini_model_id');
+            } else {
+                modelIdInput.value = "gemini-1.5-flash-8b";
+            }
             initKeyboard(); fetchQuranMetadata(); setMode('standard'); 
         });
         mainInput.addEventListener('input', process);
