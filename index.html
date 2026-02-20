@@ -250,7 +250,7 @@
         
         // Environment specific models
         const canvasModelId = "gemini-2.5-flash-preview-09-2025"; 
-        const publicModelId = "gemini-2.0-flash";
+        const publicModelId = "gemini-1.5-flash"; // Updated to universally supported free-tier model
         const ttsModelId = "gemini-2.5-flash-preview-tts"; 
 
         let currentMode = 'standard';
@@ -320,7 +320,11 @@
                     });
                     if (!response.ok) {
                         const err = await response.json();
-                        throw new Error(err.error?.message || "Gemini Error");
+                        let errorMsg = err.error?.message || "Gemini Error";
+                        if (errorMsg.includes("Quota exceeded") || response.status === 429) {
+                            errorMsg = "API Quota Exceeded. The free tier limit was reached, or the selected model is not available on your plan. Try again in a minute.";
+                        }
+                        throw new Error(errorMsg);
                     }
                     return await response.json();
                 } catch (e) {
