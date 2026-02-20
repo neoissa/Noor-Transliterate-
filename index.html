@@ -113,7 +113,7 @@
         <!-- AI Assistant Bar -->
         <div class="flex flex-wrap justify-center gap-4 mb-10">
             <button onclick="aiRefineText()" class="px-5 py-3 bg-emerald-600 text-white rounded-full shadow-lg text-sm font-bold hover:bg-emerald-700 transition-all flex items-center gap-2"><span>✨ AI Harakat Fix</span></button>
-            <button id="translitFixBtn" onclick="aiCycleTranslitFix()" class="px-5 py-3 bg-blue-600 text-white rounded-full shadow-lg text-sm font-bold hover:bg-blue-700 transition-all flex items-center gap-2"><span>✨ Fix Translit (Academic)</span></button>
+            <button id="translitFixBtn" onclick="aiCycleTranslitFix()" class="px-5 py-3 bg-blue-600 text-white rounded-full shadow-lg text-sm font-bold hover:bg-blue-700 transition-all flex items-center gap-2"><span>✨ Fix Translit (Cycle)</span></button>
             <button onclick="aiReflectText()" class="px-5 py-3 bg-white border border-blue-200 text-blue-700 rounded-full shadow-sm text-sm font-bold hover:bg-blue-50 transition-all flex items-center gap-2"><span>✨ AI Reflection</span></button>
             <button onclick="aiSpeakText()" class="px-5 py-3 bg-white border border-purple-200 text-purple-700 rounded-full shadow-sm text-sm font-bold hover:bg-purple-50 transition-all flex items-center gap-2"><span>✨ Divine Voice</span></button>
         </div>
@@ -237,7 +237,7 @@
                 <h3 class="text-xl font-black text-slate-800 tracking-tight">AI Settings</h3>
                 <button onclick="toggleSettings()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
             </div>
-            <p class="text-sm text-slate-500 mb-6">Provide your <strong>Gemini API key</strong>. Leave empty for defaults.</p>
+            <p class="text-sm text-slate-500 mb-6">Provide your <strong>Gemini API key</strong>. We have updated the engine to <strong>1.5-flash</strong> for better compatibility.</p>
             <div class="space-y-5">
                 <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="w-full p-4 border border-slate-200 rounded-2xl text-sm outline-none shadow-inner">
                 <button onclick="saveApiKey()" class="w-full py-4 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-700 shadow-lg">Save Key</button>
@@ -246,7 +246,10 @@
     </div>
 
     <script>
-        const apiKey = "";
+        // Updated model ID for better compatibility in preview environment
+        const modelId = "gemini-1.5-flash"; 
+        const ttsModelId = "gemini-2.5-flash-preview-tts"; 
+
         let currentMode = 'standard';
         let surahData = [];
         let translitFixIndex = 0;
@@ -267,7 +270,7 @@
         const keyboardGrid = document.getElementById('keyboardGrid');
         const keyboardSection = document.getElementById('keyboardSection');
 
-        // Layout Keys
+        // Professional Standard Layout Keys
         const keys = [
             '\u064E', '\u064F', '\u0650', '\u0651', '\u0652', '\u064B', '\u064C', '\u064D', '\u0670',
             'ض', 'ص', 'ث', 'ق', 'ف', 'غ', 'ع', 'ه', 'خ', 'ح', 'ج', 'د',
@@ -285,21 +288,30 @@
         const chatToAr = { "3'": "غ", "3*": "غ", "gh": "غ", "6'": "ظ", "6*": "ظ", "zh": "ظ", "9'": "ض", "9*": "ض", "dh": "ض", "7'": "خ", "7*": "خ", "kh": "خ", "5": "خ", "sh": "ش", "ch": "ش", "4": "ش", "th": "ث", "ee": "ي", "oo": "و", "ou": "و", "uu": "و", "aa": "ا", "2": "أ", "3": "ع", "6": "ط", "7": "ح", "8": "ق", "9": "ص", "a": "ا", "b": "ب", "t": "ت", "j": "ج", "d": "د", "r": "ر", "z": "ز", "s": "س", "f": "ف", "k": "ك", "l": "ل", "m": "م", "n": "n", "h": "ه", "w": "و", "y": "ي", "i": "ي", "u": "و", "e": "ا", "o": "و" };
 
         function toggleSettings() { settingsModal.classList.toggle('hidden'); }
-        function saveApiKey() { localStorage.setItem('gemini_api_key', apiKeyInput.value.trim()); toggleSettings(); alert("API Key saved successfully!"); }
+        function saveApiKey() { localStorage.setItem('gemini_api_key', apiKeyInput.value.trim()); toggleSettings(); alert("Saved!"); }
         function setKeyboardTheme(theme) {
             keyboardSection.classList.remove('kb-theme-white', 'kb-theme-black');
             keyboardSection.classList.add('kb-theme-' + theme);
             localStorage.setItem('kb_theme', theme);
         }
 
-        async function callGemini(payload, model = 'gemini-2.5-flash-preview-09-2025') {
-            const userKey = localStorage.getItem('gemini_api_key') || apiKey;
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${userKey}`;
+        async function callGemini(payload, modelOverride = null) {
+            const currentModel = modelOverride || modelId;
+            const userKey = localStorage.getItem('gemini_api_key') || "";
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${userKey}`;
+            
             let delay = 1000;
             for (let i = 0; i < 5; i++) {
                 try {
-                    const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                    if (!response.ok) { const err = await response.json(); throw new Error(err.error?.message || "Gemini Error"); }
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) {
+                        const err = await response.json();
+                        throw new Error(err.error?.message || "Gemini Error");
+                    }
                     return await response.json();
                 } catch (e) {
                     if (i === 4) throw e;
@@ -315,19 +327,19 @@
             if(!input) return;
 
             const engines = [
-                { id: "academic", name: "Academic (ALA-LC)", prompt: "Provide a strict academic transliteration using ALA-LC standards (dots under ṣ, ḍ, ṭ, ẓ, etc)." },
-                { id: "satts", name: "Technical (SATTS)", prompt: "Use the Standard Arabic Technical Transliteration System (SATTS) commonly used in military and technical contexts." },
-                { id: "library", name: "Library Systems (ISO/DIN)", prompt: "Follow specialized academic library cataloging standards (like DIN 31635 or ISO 233) for manuscript precision." },
-                { id: "modern", name: "Modern Phonetic", prompt: "Provide a phonetic transliteration designed for easy pronunciation by English speakers." },
-                { id: "tajweed", name: "Traditional Tajweed", prompt: "Highlight Tajweed pronunciation rules like Ghunnah and Madd signs clearly." }
+                { id: "academic", name: "Academic (ALA-LC)", prompt: "Strict academic transliteration using ALA-LC standards (dots under ṣ, ḍ, ṭ, ẓ, etc)." },
+                { id: "satts", name: "Technical (SATTS)", prompt: "Standard Arabic Technical Transliteration System (SATTS) for technical precision." },
+                { id: "library", name: "Library (ISO)", prompt: "Specialized academic library standards (ISO 233) for manuscript data." },
+                { id: "modern", name: "Modern Phonetic", prompt: "Modern phonetic transliteration for English speakers." },
+                { id: "tajweed", name: "Tajweed Emphasis", prompt: "Highlight Tajweed rules like Ghunnah and Madd signs clearly." }
             ];
 
             const currentEngine = engines[translitFixIndex % engines.length];
             aiLoading.classList.remove('hidden');
-            document.getElementById('aiLoadingText').innerText = `Fixing using: ${currentEngine.name}...`;
+            document.getElementById('aiLoadingText').innerText = `Applying ${currentEngine.name} source...`;
 
             try {
-                const prompt = `Rewrite ONLY the transliteration for the text: "${input}". Logic: ${currentEngine.prompt}. Output string only.`;
+                const prompt = `Rewrite ONLY the transliteration for the text: "${input}". Logic: ${currentEngine.prompt}. Output string only. No preamble.`;
                 const result = await callGemini({ contents: [{ parts: [{ text: prompt }] }] });
                 output1.value = result.candidates[0].content.parts[0].text.trim();
                 
@@ -346,13 +358,16 @@
             if(!input) return;
             aiLoading.classList.remove('hidden');
             try {
-                const prompt = `Rewrite this Arabic text with FULL Harakat. Preserve spaces. Output JSON: {"arabic": "...", "transliteration": "..."}. Input: "${input}"`;
-                const result = await callGemini({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } });
+                const prompt = `Act as an Arabic Master. Rewrite text with perfect Harakat. Preserve spaces. Output JSON: {"arabic": "...", "transliteration": "..."}. Standard: ALA-LC. Input: "${input}"`;
+                const result = await callGemini({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: { responseMimeType: "application/json" }
+                });
                 const data = JSON.parse(result.candidates[0].content.parts[0].text);
                 outputArabicEditable.value = data.arabic;
                 output1.value = data.transliteration;
                 arabicResultSection.classList.remove('hidden');
-            } catch (e) { alert("AI Error"); } finally { aiLoading.classList.add('hidden'); }
+            } catch (e) { alert("AI Error: " + e.message); } finally { aiLoading.classList.add('hidden'); }
         }
 
         async function aiReflectText() {
@@ -360,7 +375,7 @@
             if(!input) return;
             aiLoading.classList.remove('hidden');
             try {
-                const result = await callGemini({ contents: [{ parts: [{ text: `Deep linguistic/spiritual reflection on: "${input}"` }] }] });
+                const result = await callGemini({ contents: [{ parts: [{ text: `Professional linguistic and spiritual reflection on roots of: "${input}"` }] }] });
                 aiInsightsContent.innerText = result.candidates[0].content.parts[0].text;
                 aiInsightsContainer.classList.remove('hidden');
             } catch (e) { alert("AI Error"); } finally { aiLoading.classList.add('hidden'); }
@@ -371,11 +386,19 @@
             if(!input) return;
             aiLoading.classList.remove('hidden');
             try {
-                const res = await callGemini({ contents: [{ parts: [{ text: `Say clearly: ${input}` }] }], generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } } } }, "gemini-2.5-flash-preview-tts");
+                const res = await callGemini({
+                    contents: [{ parts: [{ text: `Say clearly: ${input}` }] }],
+                    generationConfig: { 
+                        responseModalities: ["AUDIO"],
+                        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } }
+                    }
+                }, ttsModelId);
+                
                 const audioData = res.candidates[0].content.parts[0].inlineData.data;
                 const binary = atob(audioData);
                 const bytes = new Uint8Array(binary.length);
                 for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+                
                 const wavHeader = new ArrayBuffer(44);
                 const view = new DataView(wavHeader);
                 const writeString = (o, s) => { for (let i = 0; i < s.length; i++) view.setUint8(o + i, s.charCodeAt(i)); };
@@ -383,9 +406,10 @@
                 view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
                 view.setUint32(24, 24000, true); view.setUint32(28, 48000, true);
                 view.setUint16(32, 2, true); view.setUint16(34, 16, true); writeString(36, 'data'); view.setUint32(40, bytes.length, true);
+                
                 const blob = new Blob([wavHeader, bytes], { type: 'audio/wav' });
                 new Audio(URL.createObjectURL(blob)).play();
-            } catch (e) { alert("Voice Error."); } finally { aiLoading.classList.add('hidden'); }
+            } catch (e) { alert("TTS unavailable."); } finally { aiLoading.classList.add('hidden'); }
         }
 
         function performFormalTransliteration(text) {
