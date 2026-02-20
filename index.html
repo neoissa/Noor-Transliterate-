@@ -237,7 +237,7 @@
                 <h3 class="text-xl font-black text-slate-800 tracking-tight">AI Settings</h3>
                 <button onclick="toggleSettings()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
             </div>
-            <p class="text-sm text-slate-500 mb-6">Provide your <strong>Gemini API key</strong> and preferred model ID to bypass quota limitations.</p>
+            <p class="text-sm text-slate-500 mb-6">Provide your <strong>Gemini API key</strong> and preferred model ID. Leave blank to use stable defaults.</p>
             <div class="space-y-4">
                 <div>
                     <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest block mb-2">API Key</label>
@@ -245,7 +245,7 @@
                 </div>
                 <div>
                     <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest block mb-2">Text Model ID</label>
-                    <input type="text" id="modelIdInput" placeholder="gemini-1.5-flash-8b" class="w-full p-4 border border-slate-200 rounded-2xl text-sm outline-none shadow-inner">
+                    <input type="text" id="modelIdInput" placeholder="gemini-1.5-flash" class="w-full p-4 border border-slate-200 rounded-2xl text-sm outline-none shadow-inner">
                 </div>
                 <div class="pt-2">
                     <button onclick="saveApiSettings()" class="w-full py-4 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-700 shadow-lg transition-all">Save Settings</button>
@@ -275,6 +275,7 @@
         
         // Environment specific models - Unified to prevent 'Not Found' errors
         const canvasModelId = "gemini-2.5-flash-preview-09-2025"; 
+        const publicModelId = "gemini-1.5-flash"; // Fully supported public model
         const ttsModelId = "gemini-2.5-flash-preview-tts"; 
 
         let currentMode = 'standard';
@@ -322,7 +323,7 @@
         
         function saveApiSettings() { 
             const key = apiKeyInput.value.trim(); 
-            const model = modelIdInput.value.trim() || 'gemini-1.5-flash-8b';
+            const model = modelIdInput.value.trim() || 'gemini-1.5-flash';
             
             if (key) { 
                 localStorage.setItem('gemini_api_key', key); 
@@ -346,7 +347,7 @@
         async function callGemini(payload, modelOverride = null) {
             const hasCustomKey = !!localStorage.getItem('gemini_api_key');
             const userKey = localStorage.getItem('gemini_api_key') || environmentApiKey;
-            const customModelId = localStorage.getItem('gemini_model_id') || "gemini-1.5-flash-8b";
+            const customModelId = localStorage.getItem('gemini_model_id') || "gemini-1.5-flash";
             
             let currentModel = modelOverride;
             if (!currentModel) {
@@ -354,9 +355,9 @@
                 currentModel = hasCustomKey ? customModelId : canvasModelId;
             }
 
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${userKey}`;
-            
+            let url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${userKey}`;
             let delay = 1000;
+            
             for (let i = 0; i < 5; i++) {
                 try {
                     const response = await fetch(url, {
@@ -364,20 +365,34 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
+                    
                     if (!response.ok) {
                         const err = await response.json();
                         let errorMsg = err.error?.message || "Gemini API Connection Error";
+                        
+                        // Robust Auto-Fallback logic for 404 Model Not Found
+                        if (response.status === 404 || errorMsg.includes("is not found")) {
+                             if (currentModel !== "gemini-1.5-flash") {
+                                 console.warn(`Model ${currentModel} rejected. Auto-falling back to gemini-1.5-flash`);
+                                 currentModel = "gemini-1.5-flash";
+                                 url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${userKey}`;
+                                 i--; // Do not count this as a generic failure, retry immediately
+                                 continue;
+                             } else {
+                                 errorMsg = `Model resolution error. The model '${currentModel}' is strictly blocked by your API tier.`;
+                             }
+                        }
+                        
                         if (errorMsg.includes("Quota exceeded") || response.status === 429) {
-                            errorMsg = "API Quota Exceeded. The free tier limit was reached, or the selected model is not available on your billing plan. Please try again shortly.";
+                            errorMsg = "API Quota Exceeded. Your API key has hit the free tier rate limit. Please try again in one minute.";
+                            throw new Error(errorMsg); // Throw immediately, don't retry on quota
                         }
-                        if (errorMsg.includes("is not found for API version v1beta") || response.status === 404) {
-                             errorMsg = `Model resolution error. The model '${currentModel}' is not supported with your API key tier. Please verify your Google AI Studio configuration and update the Model ID in settings.`;
-                        }
+                        
                         throw new Error(errorMsg);
                     }
                     return await response.json();
                 } catch (e) {
-                    if (i === 4) throw e;
+                    if (i === 4 || e.message.includes("Quota Exceeded") || e.message.includes("resolution error")) throw e;
                     await new Promise(r => setTimeout(r, delay));
                     delay *= 2;
                 }
@@ -642,7 +657,7 @@
             if(localStorage.getItem('gemini_model_id')) {
                 modelIdInput.value = localStorage.getItem('gemini_model_id');
             } else {
-                modelIdInput.value = "gemini-1.5-flash-8b"; // Set the default input value
+                modelIdInput.value = "gemini-1.5-flash"; // Resetting default to the most stable general tier model
             }
             initKeyboard(); fetchQuranMetadata(); setMode('standard'); 
         });
