@@ -237,7 +237,7 @@
                 <h3 class="text-xl font-black text-slate-800 tracking-tight">AI Settings</h3>
                 <button onclick="toggleSettings()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
             </div>
-            <p class="text-sm text-slate-500 mb-6">Provide your <strong>Gemini API key</strong>. We use designated models for preview environments and public models when deployed.</p>
+            <p class="text-sm text-slate-500 mb-6">Provide your <strong>Gemini API key</strong>.</p>
             <div class="space-y-5">
                 <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="w-full p-4 border border-slate-200 rounded-2xl text-sm outline-none shadow-inner">
                 <button onclick="saveApiKey()" class="w-full py-4 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-700 shadow-lg">Save Key</button>
@@ -248,9 +248,8 @@
     <script>
         const environmentApiKey = "";
         
-        // Environment specific models
-        const canvasModelId = "gemini-2.5-flash-preview-09-2025"; 
-        const publicModelId = "gemini-1.5-flash"; // Updated to universally supported free-tier model
+        // Environment specific models - Unified to prevent 'Not Found' errors
+        const unifiedModelId = "gemini-2.5-flash-preview-09-2025"; 
         const ttsModelId = "gemini-2.5-flash-preview-tts"; 
 
         let currentMode = 'standard';
@@ -299,14 +298,8 @@
         }
 
         async function callGemini(payload, modelOverride = null) {
-            const hasCustomKey = !!localStorage.getItem('gemini_api_key');
             const userKey = localStorage.getItem('gemini_api_key') || environmentApiKey;
-            
-            let currentModel = modelOverride;
-            if (!currentModel) {
-                // Use Canvas specific model when inside Canvas (no custom key), otherwise use standard public model.
-                currentModel = hasCustomKey ? publicModelId : canvasModelId;
-            }
+            const currentModel = modelOverride || unifiedModelId;
 
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${userKey}`;
             
