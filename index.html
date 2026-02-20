@@ -91,7 +91,7 @@
                 </div>
             </div>
             <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-800 tracking-tight">Noor Transliterate 🌟</h1>
-            <p class="text-slate-500 mt-2 font-medium italic">Reliable Offline Phonetics & Public Datasets</p>
+            <p class="text-slate-500 mt-2 font-medium italic">100% Offline Intelligence & Embedded Database</p>
         </header>
 
         <!-- Mode Toggle -->
@@ -105,9 +105,9 @@
 
         <!-- Utility Bar -->
         <div class="flex flex-wrap justify-center gap-4 mb-10">
-            <button onclick="copyText('outputArabicEditable')" class="px-5 py-3 bg-emerald-600 text-white rounded-full shadow-lg text-sm font-bold hover:bg-emerald-700 transition-all flex items-center gap-2"><span>📋 Copy Arabic</span></button>
-            <button onclick="copyText('output1')" class="px-5 py-3 bg-blue-600 text-white rounded-full shadow-lg text-sm font-bold hover:bg-blue-700 transition-all flex items-center gap-2"><span>📋 Copy Translit</span></button>
-            <button onclick="speakTextNative()" class="px-5 py-3 bg-white border border-purple-200 text-purple-700 rounded-full shadow-sm text-sm font-bold hover:bg-purple-50 transition-all flex items-center gap-2" title="Uses free native browser voice"><span>🔊 Native Recitation</span></button>
+            <button onclick="autoCorrectText()" class="px-5 py-3 bg-emerald-600 text-white rounded-full shadow-lg text-sm font-bold hover:bg-emerald-700 transition-all flex items-center gap-2" title="Checks embedded dictionary for proper Harakat"><span>✨ Auto-Correct Harakat</span></button>
+            <button onclick="localReflectText()" class="px-5 py-3 bg-white border border-blue-200 text-blue-700 rounded-full shadow-sm text-sm font-bold hover:bg-blue-50 transition-all flex items-center gap-2"><span>💡 Offline Reflection</span></button>
+            <button onclick="speakTextNative()" class="px-5 py-3 bg-slate-800 text-white rounded-full shadow-sm text-sm font-bold hover:bg-slate-700 transition-all flex items-center gap-2" title="Uses free native browser voice"><span>🔊 Speak Text</span></button>
         </div>
 
         <!-- Loading Indicator -->
@@ -123,7 +123,7 @@
             <div id="quranPickContainer" class="hidden glass-morphism rounded-3xl p-6 md:p-8 shadow-xl border-t-8 border-emerald-600 space-y-6">
                 <div class="flex items-center gap-3 mb-2 text-emerald-900">
                     <span class="text-2xl">📖</span>
-                    <span class="text-lg font-extrabold uppercase tracking-widest">Quran Verse Picker (Free Public API)</span>
+                    <span class="text-lg font-extrabold uppercase tracking-widest">Quran Verse Picker (Public Data)</span>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="flex flex-col gap-1.5">
@@ -169,15 +169,16 @@
                     
                     <div id="arabicResultSection" class="animate-in fade-in slide-in-from-top-2">
                          <div class="flex justify-between items-center mb-2">
-                            <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Arabic Script Result (Editable)</label>
-                            <button onclick="updateTranslitFromArabicEdit()" class="px-3 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-black rounded-lg border border-emerald-200 hover:bg-emerald-100 uppercase transition-all">Update Translit ⚡</button>
+                            <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Arabic Script Result</label>
+                            <button onclick="copyText('outputArabicEditable')" class="text-[10px] font-black text-emerald-600 hover:underline uppercase transition-all">Copy 📋</button>
                         </div>
-                        <textarea id="outputArabicEditable" class="w-full p-4 rounded-2xl bg-white border border-slate-200 text-2xl sm:text-3xl arabic-text shadow-inner min-h-[120px] rtl" dir="rtl"></textarea>
+                        <textarea id="outputArabicEditable" class="w-full p-4 rounded-2xl bg-white border border-slate-200 text-2xl sm:text-3xl arabic-text shadow-inner min-h-[120px] rtl" dir="rtl" oninput="updateTranslitFromArabicEdit()"></textarea>
                     </div>
 
                     <div>
                         <div class="flex justify-between items-center mb-2">
-                            <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Formal Transliteration (Editable)</label>
+                            <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Formal Transliteration</label>
+                            <button onclick="copyText('output1')" class="text-[10px] font-black text-blue-600 hover:underline uppercase transition-all">Copy 📋</button>
                         </div>
                         <textarea id="output1" class="w-full p-4 rounded-2xl bg-white/60 border border-slate-200 text-lg italic leading-relaxed shadow-inner min-h-[100px] ltr" dir="ltr" placeholder="Phonetic output appears here..."></textarea>
                     </div>
@@ -185,6 +186,15 @@
                     <div id="translationContainer" class="hidden">
                         <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest block mb-2">English Meaning (Public API)</label>
                         <div id="outputTranslation" class="w-full p-5 rounded-2xl bg-purple-50/80 border border-purple-100 text-base sm:text-lg leading-relaxed text-slate-800 ltr italic" dir="ltr"></div>
+                    </div>
+
+                    <!-- Local Knowledge Base Container -->
+                    <div id="aiInsightsContainer" class="hidden mt-2 p-6 rounded-2xl bg-blue-50 border border-blue-100 shadow-sm animate-in zoom-in-95 duration-300">
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="text-[11px] font-black text-blue-800 uppercase tracking-widest italic flex items-center gap-2">📚 Local Dictionary Insight</span>
+                            <button onclick="document.getElementById('aiInsightsContainer').classList.add('hidden')" class="text-blue-400 hover:text-blue-600 text-lg">✕</button>
+                        </div>
+                        <div id="aiInsightsContent" class="text-sm sm:text-base text-blue-900 leading-relaxed italic ltr" dir="ltr"></div>
                     </div>
 
                     <div id="copyBadge" class="hidden text-center text-emerald-600 text-xs font-black animate-bounce">Copied successfully! ✅</div>
@@ -213,20 +223,6 @@
         </footer>
     </div>
 
-    <!-- Error/Notice Modal -->
-    <div id="errorModal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
-        <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl border-t-8 border-red-600">
-            <div class="flex items-center justify-between mb-6">
-                <h3 id="errorModalTitle" class="text-xl font-black text-red-600 tracking-tight">System Notice</h3>
-                <button onclick="document.getElementById('errorModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
-            </div>
-            <p id="errorMessage" class="text-sm text-slate-600 mb-6 leading-relaxed"></p>
-            <div class="flex gap-3">
-                <button onclick="document.getElementById('errorModal').classList.add('hidden')" class="w-full py-4 bg-slate-800 text-white rounded-2xl font-black hover:bg-slate-900 shadow-md transition-all">Acknowledge</button>
-            </div>
-        </div>
-    </div>
-
     <script>
         let currentMode = 'standard';
         let surahData = [];
@@ -242,10 +238,78 @@
         const quranResults = document.getElementById('quranResults');
         const keyboardGrid = document.getElementById('keyboardGrid');
         const keyboardSection = document.getElementById('keyboardSection');
-        const errorModal = document.getElementById('errorModal');
-        const errorMessage = document.getElementById('errorMessage');
+        const aiInsightsContainer = document.getElementById('aiInsightsContainer');
+        const aiInsightsContent = document.getElementById('aiInsightsContent');
 
-        // Professional Standard Layout Keys
+        // --- THE EMBEDDED DATABASE (v5.0) ---
+        // Maps unvoweled text / Arabizi to perfectly voweled (Harakat) Arabic strings.
+        const embeddedDictionary = {
+            // Arabizi to Arabic Match
+            "bismillah": "بِسْمِ اللَّهِ",
+            "alhamdulillah": "الْحَمْدُ لِلَّهِ",
+            "subhanallah": "سُبْحَانَ اللَّهِ",
+            "allahuakbar": "اللَّهُ أَكْبَرُ",
+            "salam": "سَلَام",
+            "assalamualaikum": "السَّلَامُ عَلَيْكُمْ",
+            "salamalaykum": "السَّلَامُ عَلَيْكُمْ",
+            "mashallah": "مَا شَاءَ اللَّهُ",
+            "inshallah": "إِنْ شَاءَ اللَّهُ",
+            "astaghfirullah": "أَسْتَغْفِرُ اللَّهَ",
+            "allah": "اللَّهُ",
+            "muhammad": "مُحَمَّدٌ",
+            "ali": "عَلِيٌّ",
+            "hasan": "حَسَنٌ",
+            "husayn": "حُسَيْنٌ",
+            "hussain": "حُسَيْنٌ",
+            "fatima": "فَاطِمَةُ",
+            "zahra": "الزَّهْرَاءُ",
+            "quran": "قُرْآن",
+            "dua": "دُعَاء",
+            "salat": "صَلَاة",
+            "zakat": "زَكَاة",
+
+            // Unvoweled Arabic to Voweled Arabic Match
+            "بسم الله": "بِسْمِ اللَّهِ",
+            "الحمد لله": "الْحَمْدُ لِلَّهِ",
+            "سبحان الله": "سُبْحَانَ اللَّهِ",
+            "الله اكبر": "اللَّهُ أَكْبَرُ",
+            "السلام عليكم": "السَّلَامُ عَلَيْكُمْ",
+            "ما شاء الله": "مَا شَاءَ اللَّهُ",
+            "ان شاء الله": "إِنْ شَاءَ اللَّهُ",
+            "إن شاء الله": "إِنْ شَاءَ اللَّهُ",
+            "استغفر الله": "أَسْتَغْفِرُ اللَّهَ",
+            "الله": "اللَّهُ",
+            "محمد": "مُحَمَّدٌ",
+            "علي": "عَلِيٌّ",
+            "حسن": "حَسَنٌ",
+            "حسين": "حُسَيْنٌ",
+            "فاطمة": "فَاطِمَةُ",
+            "قران": "قُرْآن",
+            "القرآن": "الْقُرْآن",
+            "دعاء": "دُعَاء",
+            "صلاة": "صَلَاة"
+        };
+
+        // Embedded Knowledge Base for Reflections
+        const reflectionDictionary = {
+            "allah": "The supreme name of God. Root: A-L-H. Denotes the One who is worshipped and to whom all creation submits.",
+            "الله": "The supreme name of God. Root: A-L-H. Denotes the One who is worshipped and to whom all creation submits.",
+            "salam": "Root: S-L-M. Denotes peace, safety, and submission. It is one of the foundational Names of Allah (As-Salam).",
+            "سلام": "Root: S-L-M. Denotes peace, safety, and submission. It is one of the foundational Names of Allah (As-Salam).",
+            "bismillah": "Root: S-M-W (Name) and A-L-H (God). The invocation of grace and beginning all actions through Divine permission.",
+            "بسم الله": "Root: S-M-W (Name) and A-L-H (God). The invocation of grace and beginning all actions through Divine permission.",
+            "alhamdulillah": "Root: H-M-D. Encompasses both intense praise and absolute gratitude. It recognizes that all perfection and blessings originate exclusively from the Creator.",
+            "الحمد لله": "Root: H-M-D. Encompasses both intense praise and absolute gratitude. It recognizes that all perfection and blessings originate exclusively from the Creator.",
+            "muhammad": "Root: H-M-D. The intensely praised one. The name of the final Messenger (saw).",
+            "محمد": "Root: H-M-D. The intensely praised one. The name of the final Messenger (saw).",
+            "ali": "Root: '-L-W. The exalted, the high. Represents spiritual elevation and profound truth.",
+            "علي": "Root: '-L-W. The exalted, the high. Represents spiritual elevation and profound truth.",
+            "husayn": "Root: H-S-N. The diminutive form of Hasan, meaning 'the beautiful one' in inner character and outer form.",
+            "حسين": "Root: H-S-N. The diminutive form of Hasan, meaning 'the beautiful one' in inner character and outer form.",
+            "rahmah": "Root: R-H-M. Womb, unconditional grace. The fundamental paradigm of the Creator's interaction with creation."
+        };
+
+        // Standard Keyboard Keys
         const keys = [
             '\u064E', '\u064F', '\u0650', '\u0651', '\u0652', '\u064B', '\u064C', '\u064D', '\u0670',
             'ض', 'ص', 'ث', 'ق', 'ف', 'غ', 'ع', 'ه', 'خ', 'ح', 'ج', 'د',
@@ -255,21 +319,12 @@
             'Space', 'Bksp'
         ];
 
-        // Robust Transliteration Mappings (Offline)
+        // Core Fallback Mappings
         const arToEn = { 
             'ا': 'a', 'أ': 'a', 'إ': 'i', 'آ': 'ā', 'ب': 'b', 'ت': 't', 'ث': 'th', 'ج': 'j', 'ح': 'ḥ', 'خ': 'kh', 'د': 'd', 'ذ': 'dh', 'ر': 'r', 'ز': 'z', 'س': 's', 'ش': 'sh', 'ص': 'ṣ', 'ض': 'ḍ', 'ط': 'ṭ', 'ظ': 'ẓ', 'ع': '‘', 'غ': 'gh', 'ف': 'f', 'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n', 'ه': 'h', 'و': 'w', 'ي': 'y', 'ة': 'h', 'ى': 'ā', 'ء': "'", 'ئ': "'", 'ؤ': "'", 
             '\u064E': 'a', '\u064F': 'u', '\u0650': 'i', '\u0651': '', '\u0652': '', '\u064B': 'an', '\u064C': 'un', '\u064D': 'in', '\u0670': 'ā' 
         };
-        const chatToAr = { "3'": "غ", "3*": "غ", "gh": "غ", "6'": "ظ", "6*": "ظ", "zh": "ظ", "9'": "ض", "9*": "ض", "dh": "ض", "7'": "خ", "7*": "خ", "kh": "خ", "5": "خ", "sh": "ش", "ch": "ش", "4": "ش", "th": "ث", "ee": "ي", "oo": "و", "ou": "و", "uu": "و", "aa": "ا", "2": "أ", "3": "ع", "6": "ط", "7": "ح", "8": "ق", "9": "ص", "a": "ا", "b": "ب", "t": "ت", "j": "ج", "d": "د", "r": "ر", "z": "ز", "s": "س", "f": "ف", "k": "ك", "l": "ل", "m": "م", "n": "ن", "h": "ه", "w": "و", "y": "ي", "i": "ي", "u": "و", "e": "ا", "o": "و" };
-
-        function showNotification(title, msg, isError = true) { 
-            document.getElementById('errorModalTitle').innerText = title;
-            document.getElementById('errorModalTitle').className = isError ? "text-xl font-black text-red-600 tracking-tight" : "text-xl font-black text-amber-500 tracking-tight";
-            errorMessage.innerText = msg; 
-            errorModal.classList.remove('hidden'); 
-        }
-
-        function showError(msg) { showNotification("System Error", msg, true); }
+        const chatToAr = { "3'": "غ", "3*": "غ", "gh": "غ", "6'": "ظ", "6*": "ظ", "zh": "ظ", "9'": "ض", "9*": "ض", "dh": "ض", "7'": "خ", "7*": "خ", "kh": "خ", "5": "خ", "sh": "ش", "ch": "ش", "4": "ش", "th": "ث", "ee": "ي", "oo": "و", "ou": "و", "uu": "و", "aa": "ا", "2": "أ", "3": "ع", "6": "ط", "7": "ح", "8": "ق", "9": "ص", "a": "ا", "b": "ب", "t": "ت", "j": "ج", "d": "د", "r": "ر", "z": "ز", "s": "س", "f": "ف", "k": "ك", "l": "ل", "m": "م", "n": "n", "h": "ه", "w": "و", "y": "ي", "i": "ي", "u": "و", "e": "ا", "o": "و" };
 
         function setKeyboardTheme(theme) {
             keyboardSection.classList.remove('kb-theme-white', 'kb-theme-black');
@@ -277,19 +332,79 @@
             localStorage.setItem('kb_theme', theme);
         }
 
+        // --- NEW: Local Database Lookups ---
+        
+        function autoCorrectText() {
+            let text = mainInput.value.trim();
+            if (!text) return;
+
+            let words = text.split(/\s+/);
+            let resultWords = [];
+            let i = 0;
+
+            // Sliding window to detect 3-word, 2-word, or 1-word matches in the dictionary
+            while(i < words.length) {
+                let matchFound = false;
+                
+                if (i <= words.length - 3) {
+                    let phrase = [words[i], words[i+1], words[i+2]].join(" ");
+                    if (embeddedDictionary[phrase.toLowerCase()]) {
+                        resultWords.push(embeddedDictionary[phrase.toLowerCase()]);
+                        i += 3; matchFound = true; continue;
+                    }
+                }
+                
+                if (!matchFound && i <= words.length - 2) {
+                    let phrase = [words[i], words[i+1]].join(" ");
+                    if (embeddedDictionary[phrase.toLowerCase()]) {
+                        resultWords.push(embeddedDictionary[phrase.toLowerCase()]);
+                        i += 2; matchFound = true; continue;
+                    }
+                }
+                
+                if (!matchFound) {
+                    let word = words[i].toLowerCase();
+                    if (embeddedDictionary[word]) {
+                        resultWords.push(embeddedDictionary[word]);
+                    } else {
+                        resultWords.push(words[i]); // Keep original if no match
+                    }
+                    i++;
+                }
+            }
+
+            mainInput.value = resultWords.join(" ");
+            process(); // Trigger UI updates
+        }
+
+        function localReflectText() {
+            const input = mainInput.value.toLowerCase();
+            if(!input.trim()) return;
+
+            let reflection = "No specific linguistic root found for this phrase in the offline dictionary. Try inputting foundational words like 'Allah', 'Bismillah', 'Salam', or 'Alhamdulillah'.";
+
+            // Search input string against keys in our local reflection database
+            for (const key in reflectionDictionary) {
+                if (input.includes(key)) {
+                    reflection = reflectionDictionary[key];
+                    break;
+                }
+            }
+
+            aiInsightsContent.innerText = reflection;
+            aiInsightsContainer.classList.remove('hidden');
+        }
+
         // --- Native Browser Voice (100% Free, Offline) ---
         function speakTextNative() {
             const input = outputArabicEditable.value.trim() || mainInput.value.trim();
             if(!input) return;
 
-            // Stop any ongoing speech
             window.speechSynthesis.cancel();
-
             const utterance = new SpeechSynthesisUtterance(input);
-            utterance.lang = 'ar-SA'; // Arabic (Saudi Arabia)
-            utterance.rate = 0.85; // Slightly slower for clearer pronunciation
+            utterance.lang = 'ar-SA'; 
+            utterance.rate = 0.85; 
             
-            // Fallback checking to ensure the voice loads
             let voices = window.speechSynthesis.getVoices();
             if(voices.length !== 0) {
                  window.speechSynthesis.speak(utterance);
@@ -327,7 +442,6 @@
                     output1.value = performFormalTransliteration(text);
                 }
             } else {
-                // Arabizi Logic
                 let arabicBuild = "";
                 text.split(/(\s+)/).forEach((part) => {
                     if (!part) return;
@@ -374,8 +488,8 @@
                     if(data.code === 200) {
                         mainInput.value = data.data[0].text;
                         outputArabicEditable.value = data.data[0].text;
-                        output1.value = data.data[1].text; // Official Translit
-                        outputTranslation.innerText = data.data[2].text; // Official English
+                        output1.value = data.data[1].text; 
+                        outputTranslation.innerText = data.data[2].text; 
                         
                         translationContainer.classList.remove('hidden');
                         quranResults.classList.add('hidden');
@@ -399,7 +513,7 @@
                     }
                 }
             } catch (e) {
-                showError("Network Error Fetching Quran data from public API.");
+                console.error(e);
             } finally { 
                 apiLoading.classList.add('hidden'); 
             }
@@ -489,7 +603,7 @@
         });
         
         mainInput.addEventListener('input', () => {
-            translationContainer.classList.add('hidden'); // Hide translation if manually typing
+            translationContainer.classList.add('hidden'); 
             process();
         });
     </script>
