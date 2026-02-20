@@ -237,7 +237,7 @@
                 <h3 class="text-xl font-black text-slate-800 tracking-tight">AI Settings</h3>
                 <button onclick="toggleSettings()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
             </div>
-            <p class="text-sm text-slate-500 mb-6">Provide your <strong>Gemini API key</strong>. We have updated the engine to <strong>1.5-flash</strong> for better compatibility.</p>
+            <p class="text-sm text-slate-500 mb-6">Provide your <strong>Gemini API key</strong>. We use designated models for preview environments and public models when deployed.</p>
             <div class="space-y-5">
                 <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="w-full p-4 border border-slate-200 rounded-2xl text-sm outline-none shadow-inner">
                 <button onclick="saveApiKey()" class="w-full py-4 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-700 shadow-lg">Save Key</button>
@@ -246,8 +246,11 @@
     </div>
 
     <script>
-        // Updated model ID for better compatibility in preview environment
-        const modelId = "gemini-1.5-flash"; 
+        const environmentApiKey = "";
+        
+        // Environment specific models
+        const canvasModelId = "gemini-2.5-flash-preview-09-2025"; 
+        const publicModelId = "gemini-2.0-flash";
         const ttsModelId = "gemini-2.5-flash-preview-tts"; 
 
         let currentMode = 'standard';
@@ -285,7 +288,7 @@
             'ا': 'a', 'أ': 'a', 'إ': 'i', 'آ': 'ā', 'ب': 'b', 'ت': 't', 'ث': 'th', 'ج': 'j', 'ح': 'ḥ', 'خ': 'kh', 'د': 'd', 'ذ': 'dh', 'ر': 'r', 'ز': 'z', 'س': 's', 'ش': 'sh', 'ص': 'ṣ', 'ض': 'ḍ', 'ط': 'ṭ', 'ظ': 'ẓ', 'ع': '‘', 'غ': 'gh', 'ف': 'f', 'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n', 'ه': 'h', 'و': 'w', 'ي': 'y', 'ة': 'h', 'ى': 'ā', 'ء': "'", 'ئ': "'", 'ؤ': "'", 
             '\u064E': 'a', '\u064F': 'u', '\u0650': 'i', '\u0651': '', '\u0652': '', '\u064B': 'an', '\u064C': 'un', '\u064D': 'in', '\u0670': 'ā' 
         };
-        const chatToAr = { "3'": "غ", "3*": "غ", "gh": "غ", "6'": "ظ", "6*": "ظ", "zh": "ظ", "9'": "ض", "9*": "ض", "dh": "ض", "7'": "خ", "7*": "خ", "kh": "خ", "5": "خ", "sh": "ش", "ch": "ش", "4": "ش", "th": "ث", "ee": "ي", "oo": "و", "ou": "و", "uu": "و", "aa": "ا", "2": "أ", "3": "ع", "6": "ط", "7": "ح", "8": "ق", "9": "ص", "a": "ا", "b": "ب", "t": "ت", "j": "ج", "d": "د", "r": "ر", "z": "ز", "s": "س", "f": "ف", "k": "ك", "l": "ل", "m": "م", "n": "n", "h": "ه", "w": "و", "y": "ي", "i": "ي", "u": "و", "e": "ا", "o": "و" };
+        const chatToAr = { "3'": "غ", "3*": "غ", "gh": "غ", "6'": "ظ", "6*": "ظ", "zh": "ظ", "9'": "ض", "9*": "ض", "dh": "ض", "7'": "خ", "7*": "خ", "kh": "خ", "5": "خ", "sh": "ش", "ch": "ش", "4": "ش", "th": "ث", "ee": "ي", "oo": "و", "ou": "و", "uu": "و", "aa": "ا", "2": "أ", "3": "ع", "6": "ط", "7": "ح", "8": "ق", "9": "ص", "a": "ا", "b": "ب", "t": "ت", "j": "ج", "d": "د", "r": "ر", "z": "ز", "s": "س", "f": "ف", "k": "ك", "l": "ل", "m": "م", "n": "ن", "h": "ه", "w": "و", "y": "ي", "i": "ي", "u": "و", "e": "ا", "o": "و" };
 
         function toggleSettings() { settingsModal.classList.toggle('hidden'); }
         function saveApiKey() { localStorage.setItem('gemini_api_key', apiKeyInput.value.trim()); toggleSettings(); alert("Saved!"); }
@@ -296,8 +299,15 @@
         }
 
         async function callGemini(payload, modelOverride = null) {
-            const currentModel = modelOverride || modelId;
-            const userKey = localStorage.getItem('gemini_api_key') || "";
+            const hasCustomKey = !!localStorage.getItem('gemini_api_key');
+            const userKey = localStorage.getItem('gemini_api_key') || environmentApiKey;
+            
+            let currentModel = modelOverride;
+            if (!currentModel) {
+                // Use Canvas specific model when inside Canvas (no custom key), otherwise use standard public model.
+                currentModel = hasCustomKey ? publicModelId : canvasModelId;
+            }
+
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${userKey}`;
             
             let delay = 1000;
@@ -386,6 +396,13 @@
             if(!input) return;
             aiLoading.classList.remove('hidden');
             try {
+                // If using their own key (on Vercel), the TTS model might fail as it's an internal preview model.
+                // We will attempt it, but fallback gracefully if it fails.
+                const hasCustomKey = !!localStorage.getItem('gemini_api_key');
+                if(hasCustomKey) {
+                    throw new Error("TTS is currently only supported in the internal preview environment.");
+                }
+
                 const res = await callGemini({
                     contents: [{ parts: [{ text: `Say clearly: ${input}` }] }],
                     generationConfig: { 
@@ -394,6 +411,8 @@
                     }
                 }, ttsModelId);
                 
+                if (!res.candidates || !res.candidates[0].content.parts[0].inlineData) throw new Error("Audio data missing.");
+
                 const audioData = res.candidates[0].content.parts[0].inlineData.data;
                 const binary = atob(audioData);
                 const bytes = new Uint8Array(binary.length);
@@ -409,7 +428,7 @@
                 
                 const blob = new Blob([wavHeader, bytes], { type: 'audio/wav' });
                 new Audio(URL.createObjectURL(blob)).play();
-            } catch (e) { alert("TTS unavailable."); } finally { aiLoading.classList.add('hidden'); }
+            } catch (e) { alert(e.message || "TTS unavailable."); } finally { aiLoading.classList.add('hidden'); }
         }
 
         function performFormalTransliteration(text) {
