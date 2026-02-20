@@ -98,7 +98,7 @@
                 </div>
             </div>
             <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-800 tracking-tight">Noor Transliterate 🌟</h1>
-            <p class="text-slate-500 mt-2 font-medium italic">Multi-Engine Arabic Phonetics & Technical Standards</p>
+            <p class="text-slate-500 mt-2 font-medium italic">Multi-Engine Arabic Phonetics</p>
         </header>
 
         <!-- Mode Toggle -->
@@ -115,14 +115,14 @@
             <button onclick="aiRefineText()" class="px-5 py-3 bg-emerald-600 text-white rounded-full shadow-lg text-sm font-bold hover:bg-emerald-700 transition-all flex items-center gap-2"><span>✨ AI Harakat Fix</span></button>
             <button id="translitFixBtn" onclick="aiCycleTranslitFix()" class="px-5 py-3 bg-blue-600 text-white rounded-full shadow-lg text-sm font-bold hover:bg-blue-700 transition-all flex items-center gap-2"><span>✨ Fix Translit (Cycle)</span></button>
             <button onclick="aiReflectText()" class="px-5 py-3 bg-white border border-blue-200 text-blue-700 rounded-full shadow-sm text-sm font-bold hover:bg-blue-50 transition-all flex items-center gap-2"><span>✨ AI Reflection</span></button>
-            <button onclick="aiSpeakText()" class="px-5 py-3 bg-white border border-purple-200 text-purple-700 rounded-full shadow-sm text-sm font-bold hover:bg-purple-50 transition-all flex items-center gap-2"><span>✨ Divine Voice</span></button>
+            <button onclick="speakTextNative()" class="px-5 py-3 bg-white border border-purple-200 text-purple-700 rounded-full shadow-sm text-sm font-bold hover:bg-purple-50 transition-all flex items-center gap-2" title="Uses free native browser voice"><span>🔊 Native Recitation</span></button>
         </div>
 
         <!-- Loading Indicator -->
         <div id="aiLoading" class="hidden flex justify-center mb-8">
             <div class="flex items-center gap-3 bg-white px-8 py-4 rounded-2xl shadow-xl border border-slate-100">
                 <div class="loading-spinner"></div>
-                <span class="text-sm font-semibold text-slate-600 italic" id="aiLoadingText">Connecting to Gemini Engine...</span>
+                <span class="text-sm font-semibold text-slate-600 italic" id="aiLoadingText">Processing...</span>
             </div>
         </div>
 
@@ -237,15 +237,20 @@
                 <h3 class="text-xl font-black text-slate-800 tracking-tight">AI Settings</h3>
                 <button onclick="toggleSettings()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
             </div>
-            <p class="text-sm text-slate-500 mb-6">Provide your <strong>Gemini API key</strong> and preferred model ID. Leave blank to use stable defaults.</p>
+            <p class="text-sm text-slate-500 mb-6">Provide your <strong>Gemini API key</strong> and select a supported model.</p>
             <div class="space-y-4">
                 <div>
                     <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest block mb-2">API Key</label>
                     <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="w-full p-4 border border-slate-200 rounded-2xl text-sm outline-none shadow-inner">
                 </div>
                 <div>
-                    <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest block mb-2">Text Model ID</label>
-                    <input type="text" id="modelIdInput" placeholder="gemini-1.5-flash-8b" class="w-full p-4 border border-slate-200 rounded-2xl text-sm outline-none shadow-inner">
+                    <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest block mb-2">Text Model</label>
+                    <select id="modelIdInput" class="w-full p-4 border border-slate-200 rounded-2xl text-sm outline-none shadow-inner bg-white">
+                        <option value="gemini-1.5-flash-8b">Gemini 1.5 Flash-8B (Most Stable Free Tier)</option>
+                        <option value="gemini-1.5-flash">Gemini 1.5 Flash (Standard)</option>
+                        <option value="gemini-1.5-pro">Gemini 1.5 Pro (Advanced)</option>
+                        <option value="gemini-2.0-flash">Gemini 2.0 Flash (New)</option>
+                    </select>
                 </div>
                 <div class="pt-2">
                     <button onclick="saveApiSettings()" class="w-full py-4 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-700 shadow-lg transition-all">Save Settings</button>
@@ -271,12 +276,6 @@
     </div>
 
     <script>
-        const environmentApiKey = "";
-        
-        // Environment specific models - Unified to prevent 'Not Found' errors
-        const canvasModelId = "gemini-2.5-flash-preview-09-2025"; 
-        const ttsModelId = "gemini-2.5-flash-preview-tts"; 
-
         let currentMode = 'standard';
         let surahData = [];
         let translitFixIndex = 0;
@@ -310,7 +309,6 @@
             'Space', 'Bksp'
         ];
 
-        // Mappings
         const arToEn = { 
             'ا': 'a', 'أ': 'a', 'إ': 'i', 'آ': 'ā', 'ب': 'b', 'ت': 't', 'ث': 'th', 'ج': 'j', 'ح': 'ḥ', 'خ': 'kh', 'د': 'd', 'ذ': 'dh', 'ر': 'r', 'ز': 'z', 'س': 's', 'ش': 'sh', 'ص': 'ṣ', 'ض': 'ḍ', 'ط': 'ṭ', 'ظ': 'ẓ', 'ع': '‘', 'غ': 'gh', 'ف': 'f', 'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n', 'ه': 'h', 'و': 'w', 'ي': 'y', 'ة': 'h', 'ى': 'ā', 'ء': "'", 'ئ': "'", 'ؤ': "'", 
             '\u064E': 'a', '\u064F': 'u', '\u0650': 'i', '\u0651': '', '\u0652': '', '\u064B': 'an', '\u064C': 'un', '\u064D': 'in', '\u0670': 'ā' 
@@ -322,7 +320,7 @@
         
         function saveApiSettings() { 
             const key = apiKeyInput.value.trim(); 
-            const model = modelIdInput.value.trim() || 'gemini-1.5-flash-8b';
+            const model = modelIdInput.value;
             
             if (key) { 
                 localStorage.setItem('gemini_api_key', key); 
@@ -343,55 +341,86 @@
             localStorage.setItem('kb_theme', theme);
         }
 
-        async function callGemini(payload, modelOverride = null) {
-            const hasCustomKey = !!localStorage.getItem('gemini_api_key');
-            const userKey = localStorage.getItem('gemini_api_key') || environmentApiKey;
-            const customModelId = localStorage.getItem('gemini_model_id') || "gemini-1.5-flash-8b";
-            
-            let currentModel = modelOverride;
-            if (!currentModel) {
-                // Use custom model ID if a key is provided, else use the Canvas default
-                currentModel = hasCustomKey ? customModelId : canvasModelId;
+        // --- Simplified, Non-Looping API Fetch ---
+        async function callGemini(systemInstruction, userPrompt) {
+            const key = localStorage.getItem('gemini_api_key');
+            if (!key) {
+                toggleSettings();
+                throw new Error("Please enter your Gemini API Key in the Settings.");
             }
 
-            let url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${userKey}`;
-            let delay = 1000;
+            const model = localStorage.getItem('gemini_model_id') || "gemini-1.5-flash-8b";
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+
+            const payload = {
+                contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+                systemInstruction: { parts: [{ text: systemInstruction }] },
+                generationConfig: { temperature: 0.2 }
+            };
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
             
-            for (let i = 0; i < 5; i++) {
-                try {
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    
-                    if (!response.ok) {
-                        const err = await response.json();
-                        let errorMsg = err.error?.message || "Gemini API Connection Error";
-                        
-                        // Direct error reporting without hidden fallback loops
-                        if (response.status === 404 || errorMsg.includes("is not found")) {
-                             errorMsg = `Model resolution error. The model '${currentModel}' is blocked or invalid for your API tier. Please open Settings and change the Text Model ID to 'gemini-1.5-flash-8b' or 'gemini-2.0-flash'.`;
-                             throw new Error(errorMsg);
-                        }
-                        
-                        if (errorMsg.includes("Quota exceeded") || response.status === 429) {
-                            errorMsg = "API Quota Exceeded. Your API key has hit the free tier rate limit. Please try again in one minute.";
-                            throw new Error(errorMsg); 
-                        }
-                        
-                        throw new Error(errorMsg);
-                    }
-                    return await response.json();
-                } catch (e) {
-                    if (i === 4 || e.message.includes("Quota Exceeded") || e.message.includes("resolution error")) throw e;
-                    await new Promise(r => setTimeout(r, delay));
-                    delay *= 2;
+            const data = await response.json();
+
+            if (!response.ok) {
+                let errorMsg = data.error?.message || "Unknown API Error";
+                if (response.status === 404) {
+                    errorMsg = `Model Error: "${model}" is not permitted on your API tier or does not exist. Please select 'Gemini 1.5 Flash-8B' in Settings.`;
+                } else if (response.status === 429 || errorMsg.includes("Quota")) {
+                    errorMsg = "API Quota Exceeded. You have hit the rate limit for this model on your free tier.";
                 }
+                throw new Error(errorMsg);
+            }
+
+            return data.candidates[0].content.parts[0].text;
+        }
+
+        // --- Native Browser Voice (No API Quota Used) ---
+        function speakTextNative() {
+            const input = outputArabicEditable.value.trim() || mainInput.value.trim();
+            if(!input) return;
+
+            // Stop any ongoing speech
+            window.speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(input);
+            utterance.lang = 'ar-SA'; // Arabic (Saudi Arabia)
+            utterance.rate = 0.85; // Slightly slower for clearer pronunciation
+            
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // --- AI Features ---
+        async function aiRefineText() {
+            const input = mainInput.value.trim();
+            if(!input) return;
+            aiLoading.classList.remove('hidden');
+            document.getElementById('aiLoadingText').innerText = "Refining Arabic script...";
+            
+            try {
+                const sysInstruct = `You are a strict Arabic linguistic parser. Output strictly valid JSON without any markdown code blocks. Format: {"arabic": "text with perfect harakat", "transliteration": "ALA-LC standard transliteration"}`;
+                const prompt = `Rewrite this text with perfect Harakat and preserve spaces: "${input}"`;
+                
+                const resultText = await callGemini(sysInstruct, prompt);
+                
+                // Clean markdown if AI accidentally includes it
+                const cleanJson = resultText.replace(/```json/g, '').replace(/```/g, '').trim();
+                const data = JSON.parse(cleanJson);
+                
+                outputArabicEditable.value = data.arabic;
+                output1.value = data.transliteration;
+                arabicResultSection.classList.remove('hidden');
+            } catch (e) { 
+                showError("AI Harakat Fix Error: " + e.message); 
+            } finally { 
+                aiLoading.classList.add('hidden'); 
             }
         }
 
-        // --- Multi-Source Transliteration Fix Engine ---
         async function aiCycleTranslitFix() {
             const input = outputArabicEditable.value.trim() || mainInput.value.trim();
             if(!input) return;
@@ -409,9 +438,11 @@
             document.getElementById('aiLoadingText').innerText = `Applying ${currentEngine.name} source...`;
 
             try {
-                const prompt = `Rewrite ONLY the transliteration for the text: "${input}". Logic: ${currentEngine.prompt}. Output string only. No preamble.`;
-                const result = await callGemini({ contents: [{ parts: [{ text: prompt }] }] });
-                output1.value = result.candidates[0].content.parts[0].text.trim();
+                const sysInstruct = "You are a specialized transliteration engine. Output ONLY the transliterated string. Absolutely no extra words, formatting, or JSON.";
+                const prompt = `Task: ${currentEngine.prompt}\n\nInput: "${input}"`;
+                
+                const resultText = await callGemini(sysInstruct, prompt);
+                output1.value = resultText.trim();
                 
                 translitFixIndex++;
                 const nextEngine = engines[translitFixIndex % engines.length];
@@ -423,70 +454,22 @@
             }
         }
 
-        async function aiRefineText() {
-            const input = mainInput.value.trim();
-            if(!input) return;
-            aiLoading.classList.remove('hidden');
-            try {
-                const prompt = `Act as an Arabic Master. Rewrite text with perfect Harakat. Preserve spaces. Output JSON: {"arabic": "...", "transliteration": "..."}. Standard: ALA-LC. Input: "${input}"`;
-                const result = await callGemini({
-                    contents: [{ parts: [{ text: prompt }] }],
-                    generationConfig: { responseMimeType: "application/json" }
-                });
-                const data = JSON.parse(result.candidates[0].content.parts[0].text);
-                outputArabicEditable.value = data.arabic;
-                output1.value = data.transliteration;
-                arabicResultSection.classList.remove('hidden');
-            } catch (e) { showError("AI Harakat Fix Error: " + e.message); } finally { aiLoading.classList.add('hidden'); }
-        }
-
         async function aiReflectText() {
             const input = outputArabicEditable.value.trim() || mainInput.value.trim();
             if(!input) return;
             aiLoading.classList.remove('hidden');
             try {
-                const result = await callGemini({ contents: [{ parts: [{ text: `Professional linguistic and spiritual reflection on roots of: "${input}"` }] }] });
-                aiInsightsContent.innerText = result.candidates[0].content.parts[0].text;
+                const sysInstruct = "You are a professional linguistic and spiritual scholar. Provide a concise, profound reflection.";
+                const prompt = `Reflect on the roots and meaning of: "${input}"`;
+                const resultText = await callGemini(sysInstruct, prompt);
+                
+                aiInsightsContent.innerText = resultText;
                 aiInsightsContainer.classList.remove('hidden');
-            } catch (e) { showError("Reflection Error: " + e.message); } finally { aiLoading.classList.add('hidden'); }
-        }
-
-        async function aiSpeakText() {
-            const input = outputArabicEditable.value.trim() || mainInput.value.trim();
-            if(!input) return;
-            aiLoading.classList.remove('hidden');
-            try {
-                const hasCustomKey = !!localStorage.getItem('gemini_api_key');
-                if(hasCustomKey) {
-                    throw new Error("TTS is an experimental feature and currently requires the internal preview environment.");
-                }
-
-                const res = await callGemini({
-                    contents: [{ parts: [{ text: `Say clearly: ${input}` }] }],
-                    generationConfig: { 
-                        responseModalities: ["AUDIO"],
-                        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } }
-                    }
-                }, ttsModelId);
-                
-                if (!res.candidates || !res.candidates[0].content.parts[0].inlineData) throw new Error("Audio data missing.");
-
-                const audioData = res.candidates[0].content.parts[0].inlineData.data;
-                const binary = atob(audioData);
-                const bytes = new Uint8Array(binary.length);
-                for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-                
-                const wavHeader = new ArrayBuffer(44);
-                const view = new DataView(wavHeader);
-                const writeString = (o, s) => { for (let i = 0; i < s.length; i++) view.setUint8(o + i, s.charCodeAt(i)); };
-                writeString(0, 'RIFF'); view.setUint32(4, 36 + bytes.length, true); writeString(8, 'WAVE'); writeString(12, 'fmt ');
-                view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
-                view.setUint32(24, 24000, true); view.setUint32(28, 48000, true);
-                view.setUint16(32, 2, true); view.setUint16(34, 16, true); writeString(36, 'data'); view.setUint32(40, bytes.length, true);
-                
-                const blob = new Blob([wavHeader, bytes], { type: 'audio/wav' });
-                new Audio(URL.createObjectURL(blob)).play();
-            } catch (e) { showError(e.message || "TTS Request Failed."); } finally { aiLoading.classList.add('hidden'); }
+            } catch (e) { 
+                showError("Reflection Error: " + e.message); 
+            } finally { 
+                aiLoading.classList.add('hidden'); 
+            }
         }
 
         function performFormalTransliteration(text) {
@@ -537,6 +520,7 @@
             const query = document.getElementById('quranKeyword').value.trim();
             if (!query) return;
             aiLoading.classList.remove('hidden');
+            document.getElementById('aiLoadingText').innerText = "Fetching Divine Verses...";
             try {
                 const refMatch = query.match(/^(\d+):(\d+)$/);
                 if (refMatch) {
@@ -566,7 +550,9 @@
                         });
                     }
                 }
-            } catch (e) {} finally { aiLoading.classList.add('hidden'); }
+            } catch (e) {
+                showError("Network Error Fetching Quran data.");
+            } finally { aiLoading.classList.add('hidden'); }
         }
 
         async function fetchQuranMetadata() {
@@ -646,11 +632,11 @@
             if(localStorage.getItem('gemini_api_key')) {
                 apiKeyInput.value = localStorage.getItem('gemini_api_key');
             }
-            if(localStorage.getItem('gemini_model_id')) {
-                modelIdInput.value = localStorage.getItem('gemini_model_id');
-            } else {
-                modelIdInput.value = "gemini-1.5-flash-8b"; // Safe, widely accessible default
-            }
+            // Explicitly force the safe model on load
+            const savedModel = localStorage.getItem('gemini_model_id') || "gemini-1.5-flash-8b";
+            modelIdInput.value = savedModel;
+            localStorage.setItem('gemini_model_id', savedModel);
+
             initKeyboard(); fetchQuranMetadata(); setMode('standard'); 
         });
         mainInput.addEventListener('input', process);
