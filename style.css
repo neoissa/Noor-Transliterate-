@@ -1,0 +1,412 @@
+body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    min-height: 100vh;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* ===================== DARK MODE ===================== */
+.dark body {
+    background: linear-gradient(135deg, #0f172a 0%, #172554 100%);
+    color: #f8fafc;
+}
+
+.dark .text-slate-800 {
+    color: #f8fafc;
+}
+
+.dark .text-slate-700 {
+    color: #cbd5e1;
+}
+
+.dark .text-slate-500 {
+    color: #94a3b8;
+}
+
+.dark .text-slate-400 {
+    color: #64748b;
+}
+
+.dark .border-slate-200,
+.dark .border-slate-100 {
+    border-color: #334155;
+}
+
+.dark .bg-white {
+    background-color: #1e293b;
+    color: #f8fafc;
+}
+
+.dark textarea.bg-white,
+.dark textarea {
+    background-color: #0f172a;
+    color: #f8fafc;
+}
+
+.dark select.bg-white {
+    background-color: #0f172a;
+    color: #f8fafc;
+}
+
+/* ===================== ACCENT THEMES ===================== */
+:root {
+    --accent-h: 160;
+    --accent-s: 84%;
+    --accent-l: 39%;
+}
+
+.theme-emerald {
+    --accent-h: 160;
+    --accent-s: 84%;
+    --accent-l: 39%;
+}
+
+.theme-blue {
+    --accent-h: 217;
+    --accent-s: 91%;
+    --accent-l: 60%;
+}
+
+.theme-purple {
+    --accent-h: 271;
+    --accent-s: 81%;
+    --accent-l: 56%;
+}
+
+.theme-gold {
+    --accent-h: 38;
+    --accent-s: 92%;
+    --accent-l: 50%;
+}
+
+.accent-bg {
+    background-color: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
+}
+
+.accent-bg:hover {
+    background-color: hsl(var(--accent-h), var(--accent-s), calc(var(--accent-l) - 5%));
+}
+
+.accent-text {
+    color: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
+}
+
+.dark .accent-text {
+    color: hsl(var(--accent-h), var(--accent-s), 65%);
+}
+
+.accent-text-hover {
+    color: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
+}
+
+.accent-text-hover:hover {
+    color: hsl(var(--accent-h), var(--accent-s), calc(var(--accent-l) - 10%));
+}
+
+.accent-border-color {
+    border-color: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
+}
+
+.accent-dot.active-accent {
+    box-shadow: 0 0 0 3px hsl(var(--accent-h), var(--accent-s), var(--accent-l)), 0 0 12px hsl(var(--accent-h), var(--accent-s), var(--accent-l), 0.4);
+    transform: scale(1.2);
+}
+
+.app-icon-svg {
+    color: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
+}
+
+/* ===================== GLASS MORPHISM ===================== */
+.glass-morphism {
+    background: rgba(255, 255, 255, 0.95);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.glass-dark {
+    background: rgba(15, 23, 42, 0.85);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dark .glass-morphism {
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ===================== ARABIC TEXT ===================== */
+.arabic-text {
+    font-family: 'Amiri', serif;
+    direction: rtl;
+    line-height: 2.2;
+}
+
+/* ===================== TABS ===================== */
+.active-tab {
+    background-color: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* ===================== KEYBOARD ===================== */
+.keyboard-key {
+    transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+}
+
+.keyboard-key:active {
+    transform: translateY(2px);
+    opacity: 0.8;
+}
+
+.keyboard-key.active-key {
+    transform: translateY(2px) scale(0.95);
+    opacity: 0.75;
+    background-color: hsl(var(--accent-h), var(--accent-s), var(--accent-l)) !important;
+    color: white !important;
+}
+
+/* Keyboard Themes */
+.kb-theme-white .keyboard-key {
+    background-color: #ffffff;
+    color: #1e293b;
+    border-bottom: 4px solid #e2e8f0;
+}
+
+.kb-theme-black .keyboard-key {
+    background-color: #1e293b;
+    color: #f8fafc;
+    border-bottom: 4px solid #0f172a;
+}
+
+.kb-theme-black {
+    background-color: #0f172a !important;
+}
+
+/* ===================== LOADING SPINNER ===================== */
+.loading-spinner {
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border-left-color: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* ===================== OUTPUT FLASH ANIMATION ===================== */
+@keyframes outputFlash {
+    0% {
+        opacity: 1;
+    }
+
+    25% {
+        opacity: 0.5;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.output-flash {
+    animation: outputFlash 0.4s ease;
+}
+
+/* ===================== FONT SLIDER ===================== */
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 2px;
+    outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+.dark input[type="range"] {
+    background: #334155;
+}
+
+/* ===================== SELECT CUSTOM ARROW ===================== */
+select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 1em;
+}
+
+/* ===================== SCROLLBAR ===================== */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: #475569;
+}
+
+/* ===================== DIRECTION HELPERS ===================== */
+.ltr {
+    direction: ltr;
+    text-align: left;
+}
+
+.rtl {
+    direction: rtl;
+    text-align: right;
+}
+
+/* ===================== INSTALL BANNER ===================== */
+.install-slide-down {
+    animation: slideDown 0.5s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* ===================== TAJWEED COLORS ===================== */
+.tajweed-ghunnah {
+    color: #059669;
+    font-weight: bold;
+}
+
+.tajweed-qalqalah {
+    color: #dc2626;
+    font-weight: bold;
+}
+
+.tajweed-idgham {
+    color: #7c3aed;
+    font-weight: bold;
+}
+
+.tajweed-ikhfa {
+    color: #d97706;
+    font-weight: bold;
+}
+
+.tajweed-madd {
+    color: #2563eb;
+    font-weight: bold;
+}
+
+/* ===================== CITY CLOCK CARD ===================== */
+.city-clock-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.8) 100%);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;
+}
+
+.city-clock-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.dark .city-clock-card {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.8) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.clock-time {
+    font-family: 'Inter', monospace;
+    font-variant-numeric: tabular-nums;
+}
+
+.countdown-pulse {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+}
+
+/* ===================== WORD-BY-WORD CARD ===================== */
+.word-card {
+    background: white;
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+}
+
+.word-card:hover {
+    transform: scale(1.05);
+    border-color: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.1);
+}
+
+.dark .word-card {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+/* ===================== VOICE RECORDING PULSE ===================== */
+.voice-recording {
+    animation: voicePulse 1s ease-in-out infinite;
+    color: #dc2626 !important;
+}
+
+@keyframes voicePulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.5;
+        transform: scale(1.1);
+    }
+}

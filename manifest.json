@@ -1,0 +1,18 @@
+{
+  "name": "Noor Transliterate",
+  "short_name": "Noor Trans",
+  "description": "A beautiful, offline Arabic transliteration tool with Quran search, embedded dictionary, city clocks, and more.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#10b981",
+  "orientation": "any",
+  "categories": ["education", "utilities"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' class='text-emerald-600'%3e%3cpath d='M50 10L15 25V75L50 90L85 75V25L50 10Z' stroke='%23059669' stroke-width='4' stroke-linejoin='round' fill='white'/%3e%3cpath d='M50 20V80M25 35C25 35 35 40 50 40C65 40 75 35 75 35M25 50C25 50 35 55 50 55C65 55 75 50 75 50M25 65C25 65 35 70 50 70C65 70 75 65 75 65' stroke='%23059669' stroke-width='3' stroke-linecap='round'/%3e%3c/svg%3e",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}

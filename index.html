@@ -1,611 +1,526 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Noor Transliterate 🌟</title>
+    <title>Noor Transliterate v2 🌟</title>
+    <meta name="description"
+        content="Free offline Arabic transliteration tool with 99 Names of Allah, Quran search, Arabizi conversion, and virtual keyboard.">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            min-height: 100vh;
-        }
-        .arabic-text {
-            font-family: 'Amiri', serif;
-            direction: rtl;
-        }
-        .keyboard-key {
-            transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-            user-select: none;
-            touch-action: manipulation;
-        }
-        .keyboard-key:active {
-            transform: translateY(2px);
-            opacity: 0.8;
-        }
-        
-        /* Keyboard Themes */
-        .kb-theme-white .keyboard-key {
-            background-color: #ffffff;
-            color: #1e293b;
-            border-bottom: 4px solid #e2e8f0;
-        }
-        .kb-theme-black .keyboard-key {
-            background-color: #1e293b;
-            color: #f8fafc;
-            border-bottom: 4px solid #0f172a;
-        }
-        .kb-theme-black {
-            background-color: #0f172a !important;
-        }
-
-        .glass-morphism {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-        }
-        .active-tab {
-            background-color: #059669;
-            color: white;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        .loading-spinner {
-            border: 3px solid rgba(0, 0, 0, 0.1);
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            border-left-color: #10b981;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        select {
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 0.5rem center;
-            background-size: 1em;
-        }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .ltr { direction: ltr; text-align: left; }
-        .rtl { direction: rtl; text-align: right; }
-    </style>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Amiri:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#10b981">
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
-<body class="p-3 sm:p-4 md:p-6 lg:p-8 text-slate-800">
+
+<body class="p-3 sm:p-4 md:p-6 lg:p-8 text-slate-800 transition-colors duration-300">
+
+    <!-- PWA Install Banner -->
+    <div id="installBanner"
+        class="hidden fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-4 py-3 shadow-xl flex items-center justify-between install-slide-down">
+        <div class="flex items-center gap-3">
+            <span class="text-2xl">📲</span>
+            <div>
+                <p class="font-extrabold text-sm">Install Noor Transliterate</p>
+                <p class="text-xs opacity-80">Access offline, anytime</p>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="installPWA()"
+                class="px-4 py-1.5 bg-white text-emerald-700 rounded-full text-xs font-black">Install</button>
+            <button onclick="dismissInstall()"
+                class="px-3 py-1.5 text-white/70 hover:text-white text-xs font-bold">Later</button>
+        </div>
+    </div>
 
     <div class="max-w-7xl mx-auto relative">
-        
+
         <!-- Header -->
-        <header class="text-center mb-8 pt-4">
-            <div class="flex justify-center mb-3">
-                <div class="p-3 bg-white rounded-2xl shadow-sm border border-slate-100">
-                    <svg width="50" height="50" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" class="text-emerald-600">
-                        <path d="M50 10L15 25V75L50 90L85 75V25L50 10Z" stroke="currentColor" stroke-width="4" stroke-linejoin="round" fill="white"/>
-                        <path d="M50 20V80M25 35C25 35 35 40 50 40C65 40 75 35 75 35M25 50C25 50 35 55 50 55C65 55 75 50 75 50M25 65C25 65 35 70 50 70C65 70 75 65 75 65" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-                    </svg>
+        <header class="text-center mb-6 pt-4">
+            <div class="flex justify-between items-start mb-3">
+                <div class="flex items-center gap-2">
+                    <button id="darkModeBtn" onclick="toggleDarkMode()"
+                        class="w-10 h-10 rounded-full bg-white dark:bg-slate-700 shadow-md flex items-center justify-center text-lg border border-slate-200 dark:border-slate-600 hover:scale-110 transition-transform"
+                        title="Toggle Dark Mode (Ctrl+D)">🌙</button>
+                    <div class="flex gap-1">
+                        <button onclick="setAccentTheme('emerald')"
+                            class="w-5 h-5 rounded-full bg-emerald-500 border-2 border-white shadow-sm hover:scale-125 transition-transform accent-dot"
+                            title="Emerald"></button>
+                        <button onclick="setAccentTheme('blue')"
+                            class="w-5 h-5 rounded-full bg-blue-500 border-2 border-white shadow-sm hover:scale-125 transition-transform accent-dot"
+                            title="Blue"></button>
+                        <button onclick="setAccentTheme('purple')"
+                            class="w-5 h-5 rounded-full bg-purple-500 border-2 border-white shadow-sm hover:scale-125 transition-transform accent-dot"
+                            title="Purple"></button>
+                        <button onclick="setAccentTheme('gold')"
+                            class="w-5 h-5 rounded-full bg-amber-500 border-2 border-white shadow-sm hover:scale-125 transition-transform accent-dot"
+                            title="Gold"></button>
+                    </div>
                 </div>
+                <div class="flex flex-col items-center">
+                    <div
+                        class="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 mb-3">
+                        <svg width="44" height="44" viewBox="0 0 100 100" fill="none" class="text-emerald-600">
+                            <path d="M50 10L15 25V75L50 90L85 75V25L50 10Z" stroke="currentColor" stroke-width="4"
+                                stroke-linejoin="round" fill="white" />
+                            <path
+                                d="M50 20V80M25 35C25 35 35 40 50 40C65 40 75 35 75 35M25 50C25 50 35 55 50 55C65 55 75 50 75 50M25 65C25 65 35 70 50 70C65 70 75 65 75 65"
+                                stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+                        </svg>
+                    </div>
+                    <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-800 dark:text-white tracking-tight">Noor
+                        Transliterate <span class="text-emerald-500">v2</span> 🌟</h1>
+                    <p class="text-slate-500 dark:text-slate-400 mt-1 font-medium italic text-sm">100% Offline
+                        Intelligence • 99 Names of Allah • Quran Search</p>
+                    <p class="text-[10px] text-slate-400 dark:text-slate-600 mt-1 font-mono">Press <kbd
+                            class="px-1 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[9px] font-bold">Ctrl+/</kbd>
+                        for shortcuts</p>
+                </div>
+                <button onclick="toggleHelp()"
+                    class="w-10 h-10 rounded-full bg-white dark:bg-slate-700 shadow-md flex items-center justify-center text-lg border border-slate-200 dark:border-slate-600 hover:scale-110 transition-transform"
+                    title="Help & Shortcuts">❓</button>
             </div>
-            <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-800 tracking-tight">Noor Transliterate 🌟</h1>
-            <p class="text-slate-500 mt-2 font-medium italic">100% Offline Intelligence & Embedded Database</p>
         </header>
 
+        <!-- Help Panel -->
+        <div id="helpPanel"
+            class="hidden mb-6 p-5 rounded-2xl bg-blue-50 dark:bg-slate-800 border border-blue-100 dark:border-slate-600 text-sm text-slate-700 dark:text-slate-300">
+            <div class="flex justify-between items-center mb-3">
+                <span class="font-black text-blue-800 dark:text-blue-300 uppercase tracking-widest text-xs">⌨️ Tips &
+                    Shortcuts</span>
+                <button onclick="toggleHelp()" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div>• <strong>Standard Mode:</strong> Type Arabic → get transliteration</div>
+                <div>• <strong>Arabizi Mode:</strong> Type phonetics (e.g. "3rb") → get Arabic</div>
+                <div>• <strong>✨ Auto-Correct:</strong> Adds proper vowel marks (Harakat)</div>
+                <div>• <strong>💡 Reflection:</strong> Get linguistic root insight for your word</div>
+                <div>• <strong>📖 Quran Mode:</strong> Search by keyword or ref (e.g. "2:255")</div>
+                <div>• <strong>📤 Share:</strong> Share Arabic + transliteration instantly</div>
+                <div>• <strong>⭐ Save:</strong> Save phrase to History panel below</div>
+                <div>• <strong>Font Slider:</strong> Adjust Arabic output font size</div>
+                <div>• <strong>Try typing:</strong> ar-rahman, al-kareem, bismillah...</div>
+                <div>• <strong>99 Names:</strong> Type any of Allah's names in Arabizi</div>
+            </div>
+        </div>
+
+        <!-- Daily Ayah Banner -->
+        <div id="dailyAyahBanner"
+            class="hidden mb-6 glass-morphism dark:glass-dark rounded-3xl p-5 md:p-6 shadow-xl border-l-8 border-emerald-500">
+            <div class="flex justify-between items-start mb-3">
+                <span
+                    class="text-[11px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest flex items-center gap-2">✨
+                    Verse of the Session</span>
+                <button onclick="document.getElementById('dailyAyahBanner').classList.add('hidden')"
+                    class="text-slate-400 hover:text-slate-600 text-lg leading-none">✕</button>
+            </div>
+            <p id="dailyAyahArabic"
+                class="text-2xl sm:text-3xl arabic-text text-right text-emerald-900 dark:text-emerald-300 leading-loose mb-3 font-bold">
+            </p>
+            <p id="dailyAyahTranslation" class="text-sm text-slate-600 dark:text-slate-400 italic leading-relaxed mb-3">
+            </p>
+            <div class="flex items-center justify-between flex-wrap gap-2">
+                <span id="dailyAyahRef"
+                    class="text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider"></span>
+                <button onclick="loadAyahIntoTransliterator()"
+                    class="px-4 py-2 bg-emerald-600 text-white rounded-full text-xs font-bold hover:bg-emerald-700 transition-all shadow-sm">Load
+                    into Transliterator →</button>
+            </div>
+        </div>
+
+        <!-- City Countdown Clocks -->
+        <div id="cityCountdownSection"
+            class="mb-6 glass-morphism dark:glass-dark rounded-3xl p-6 md:p-8 shadow-xl border-t-4 border-emerald-500">
+            <div class="flex items-center justify-between mb-5">
+                <div class="flex items-center gap-3"><span class="text-2xl">🕐</span><span
+                        class="text-sm font-black uppercase tracking-widest text-slate-700 dark:text-slate-300">World
+                        Clocks & Countdowns</span></div>
+                <div class="flex gap-2 items-center">
+                    <select id="addCitySelect"
+                        class="p-2 rounded-xl border border-slate-200 dark:border-slate-600 text-xs bg-white dark:bg-slate-800 dark:text-white outline-none"
+                        title="Add a city clock">
+                        <option value="">+ Add City</option>
+                    </select>
+                    <button onclick="addSelectedCity()"
+                        class="px-3 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-all">Add</button>
+                </div>
+            </div>
+            <div id="cityClockGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+
         <!-- Mode Toggle -->
-        <div class="flex justify-center mb-8">
-            <div class="inline-flex rounded-2xl shadow-sm bg-white p-1.5 border border-slate-200">
-                <button id="modeStandard" onclick="setMode('standard')" class="px-5 sm:px-8 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all active-tab">Standard</button>
-                <button id="modeArabizi" onclick="setMode('arabizi')" class="px-5 sm:px-8 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all text-slate-500 hover:bg-slate-50">Arabizi (3rb)</button>
-                <button id="modeQuran" onclick="setMode('quran')" class="px-5 sm:px-8 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all text-slate-500 hover:bg-slate-50 flex items-center gap-1">📖 Quran Search</button>
+        <div class="flex justify-center mb-6">
+            <div
+                class="inline-flex rounded-2xl shadow-sm bg-white dark:bg-slate-800 p-1.5 border border-slate-200 dark:border-slate-700">
+                <button id="modeStandard" onclick="setMode('standard')"
+                    class="px-5 sm:px-8 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all active-tab">Standard</button>
+                <button id="modeArabizi" onclick="setMode('arabizi')"
+                    class="px-5 sm:px-8 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700">Arabizi
+                    (3rb)</button>
+                <button id="modeQuran" onclick="setMode('quran')"
+                    class="px-5 sm:px-8 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-1">📖
+                    Quran</button>
             </div>
         </div>
 
         <!-- Utility Bar -->
-        <div class="flex flex-wrap justify-center gap-4 mb-10">
-            <button onclick="autoCorrectText()" class="px-5 py-3 bg-emerald-600 text-white rounded-full shadow-lg text-sm font-bold hover:bg-emerald-700 transition-all flex items-center gap-2" title="Checks embedded dictionary for proper Harakat"><span>✨ Auto-Correct Harakat</span></button>
-            <button onclick="localReflectText()" class="px-5 py-3 bg-white border border-blue-200 text-blue-700 rounded-full shadow-sm text-sm font-bold hover:bg-blue-50 transition-all flex items-center gap-2"><span>💡 Offline Reflection</span></button>
-            <button onclick="speakTextNative()" class="px-5 py-3 bg-slate-800 text-white rounded-full shadow-sm text-sm font-bold hover:bg-slate-700 transition-all flex items-center gap-2" title="Uses free native browser voice"><span>🔊 Speak Text</span></button>
+        <div class="flex flex-wrap justify-center gap-3 mb-8">
+            <button onclick="autoCorrectText()"
+                class="px-4 py-2.5 bg-emerald-600 text-white rounded-full shadow-lg text-xs font-bold hover:bg-emerald-700 transition-all"
+                title="Apply Harakat from dictionary">✨ Auto-Correct</button>
+            <button onclick="localReflectText()"
+                class="px-4 py-2.5 bg-white dark:bg-slate-700 border border-blue-200 dark:border-slate-600 text-blue-700 dark:text-blue-300 rounded-full shadow-sm text-xs font-bold hover:bg-blue-50 dark:hover:bg-slate-600 transition-all">💡
+                Reflection</button>
+            <button onclick="speakTextNative()"
+                class="px-4 py-2.5 bg-slate-800 dark:bg-slate-600 text-white rounded-full shadow-sm text-xs font-bold hover:bg-slate-700 transition-all"
+                title="Native browser TTS">🔊 Speak</button>
+            <button onclick="shareContent()"
+                class="px-4 py-2.5 bg-purple-600 text-white rounded-full shadow-sm text-xs font-bold hover:bg-purple-700 transition-all">📤
+                Share</button>
+            <button onclick="saveToHistory()"
+                class="px-4 py-2.5 bg-amber-500 text-white rounded-full shadow-sm text-xs font-bold hover:bg-amber-600 transition-all">⭐
+                Save</button>
+            <button onclick="showWordByWord()"
+                class="px-4 py-2.5 bg-white dark:bg-slate-700 border border-indigo-200 dark:border-slate-600 text-indigo-700 dark:text-indigo-300 rounded-full shadow-sm text-xs font-bold hover:bg-indigo-50 dark:hover:bg-slate-600 transition-all">🔤
+                Word-by-Word</button>
+            <button onclick="exportAsImage()"
+                class="px-4 py-2.5 bg-white dark:bg-slate-700 border border-amber-200 dark:border-slate-600 text-amber-700 dark:text-amber-300 rounded-full shadow-sm text-xs font-bold hover:bg-amber-50 dark:hover:bg-slate-600 transition-all">🖼️
+                Export Image</button>
         </div>
 
         <!-- Loading Indicator -->
-        <div id="apiLoading" class="hidden flex justify-center mb-8">
-            <div class="flex items-center gap-3 bg-white px-8 py-4 rounded-2xl shadow-xl border border-slate-100">
+        <div id="apiLoading" class="hidden flex justify-center mb-6">
+            <div
+                class="flex items-center gap-3 bg-white dark:bg-slate-800 px-8 py-4 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700">
                 <div class="loading-spinner"></div>
-                <span class="text-sm font-semibold text-slate-600 italic" id="apiLoadingText">Fetching Data...</span>
+                <span class="text-sm font-semibold text-slate-600 dark:text-slate-400 italic"
+                    id="apiLoadingText">Fetching Data...</span>
             </div>
         </div>
 
-        <div class="space-y-8">
+        <div class="space-y-6">
+
             <!-- Quran Pick UI -->
-            <div id="quranPickContainer" class="hidden glass-morphism rounded-3xl p-6 md:p-8 shadow-xl border-t-8 border-emerald-600 space-y-6">
-                <div class="flex items-center gap-3 mb-2 text-emerald-900">
+            <div id="quranPickContainer"
+                class="hidden glass-morphism dark:glass-dark rounded-3xl p-6 md:p-8 shadow-xl border-t-8 border-emerald-600 space-y-5">
+                <div class="flex items-center gap-3 text-emerald-900 dark:text-emerald-400">
                     <span class="text-2xl">📖</span>
-                    <span class="text-lg font-extrabold uppercase tracking-widest">Quran Verse Picker (Public Data)</span>
+                    <span class="text-sm font-extrabold uppercase tracking-widest">Quran Verse Picker</span>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
                     <div class="flex flex-col gap-1.5">
-                        <label class="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">By Juz</label>
-                        <select id="pickJuz" onchange="handleJuzChange()" class="p-3 rounded-xl border border-slate-200 text-sm bg-white outline-none focus:ring-2 focus:ring-emerald-500 transition-all"></select>
+                        <label
+                            class="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider ml-1">By
+                            Juz</label>
+                        <select id="pickJuz" onchange="handleJuzChange()"
+                            class="p-3 rounded-xl border border-slate-200 dark:border-slate-600 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500"></select>
                     </div>
                     <div class="flex flex-col gap-1.5">
-                        <label class="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">By Surah</label>
-                        <select id="pickSurah" onchange="handleSurahChange()" class="p-3 rounded-xl border border-slate-200 text-sm bg-white outline-none focus:ring-2 focus:ring-emerald-500 transition-all"></select>
+                        <label
+                            class="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider ml-1">By
+                            Surah</label>
+                        <select id="pickSurah" onchange="handleSurahChange()"
+                            class="p-3 rounded-xl border border-slate-200 dark:border-slate-600 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500"></select>
                     </div>
                     <div class="flex flex-col gap-1.5">
-                        <label class="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">By Ayah</label>
-                        <select id="pickAyah" onchange="handleAyahChange()" class="p-3 rounded-xl border border-slate-200 text-sm bg-white outline-none focus:ring-2 focus:ring-emerald-500 transition-all"></select>
+                        <label
+                            class="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider ml-1">By
+                            Ayah</label>
+                        <select id="pickAyah" onchange="handleAyahChange()"
+                            class="p-3 rounded-xl border border-slate-200 dark:border-slate-600 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500"></select>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label
+                            class="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider ml-1">Translation</label>
+                        <select id="translationLang" onchange="changeTranslationLang()"
+                            class="p-3 rounded-xl border border-slate-200 dark:border-slate-600 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500">
+                            <option value="en.sahih">English (Sahih)</option>
+                            <option value="en.asad">English (Asad)</option>
+                            <option value="ur.jalandhry">Urdu</option>
+                            <option value="fr.hamidullah">French</option>
+                            <option value="tr.ates">Turkish</option>
+                            <option value="fa.makarem">Persian</option>
+                            <option value="de.aburida">German</option>
+                            <option value="es.cortes">Spanish</option>
+                        </select>
                     </div>
                 </div>
                 <div class="flex gap-3">
-                    <input type="text" id="quranKeyword" placeholder="Search ref (e.g. '2:255') or keyword..." class="flex-1 p-4 rounded-2xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-emerald-500 shadow-inner" onkeypress="if(event.key==='Enter') handleUnifiedSearch()">
-                    <button onclick="handleUnifiedSearch()" class="px-8 py-4 bg-slate-800 text-white rounded-2xl text-sm font-black hover:bg-slate-900 transition-all shadow-md">Search</button>
+                    <input type="text" id="quranKeyword" placeholder="Ref (e.g. '2:255') or keyword..."
+                        class="flex-1 p-4 rounded-2xl border border-slate-200 dark:border-slate-600 text-sm outline-none focus:ring-2 focus:ring-emerald-500 shadow-inner bg-white dark:bg-slate-800 dark:text-white"
+                        onkeypress="if(event.key==='Enter') handleUnifiedSearch()">
+                    <button onclick="handleUnifiedSearch()"
+                        class="px-6 py-3 bg-slate-800 dark:bg-emerald-700 text-white rounded-2xl text-sm font-black hover:bg-slate-900 dark:hover:bg-emerald-800 transition-all shadow-md">Search</button>
                 </div>
-                <div id="quranResults" class="hidden max-h-60 overflow-y-auto space-y-3 mt-4 pr-1 custom-scrollbar"></div>
+                <div id="quranResults" class="hidden max-h-60 overflow-y-auto space-y-2 pr-1"></div>
             </div>
 
+            <!-- Input + Output Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+
                 <!-- Input Card -->
-                <div class="glass-morphism rounded-3xl p-6 md:p-8 shadow-xl border-b-8 border-emerald-500 flex flex-col">
+                <div
+                    class="glass-morphism dark:glass-dark rounded-3xl p-6 md:p-8 shadow-xl border-b-8 border-emerald-500 flex flex-col">
                     <div class="flex justify-between items-center mb-4">
-                        <label id="inputLabel" class="text-xs sm:text-sm font-black text-slate-700 uppercase tracking-widest">Input Master Script</label>
-                        <div class="flex gap-3">
-                            <button onclick="pasteText()" class="text-[11px] font-black text-emerald-600 hover:text-emerald-700 uppercase flex items-center gap-1.5">📋 Paste</button>
-                            <span class="text-slate-300">|</span>
-                            <button onclick="clearText('input')" class="text-[11px] font-black text-red-500 hover:text-red-700 uppercase">Clear</button>
+                        <label id="inputLabel"
+                            class="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-300 uppercase tracking-widest">Input</label>
+                        <div class="flex gap-3 items-center">
+                            <button onclick="startVoiceInput()" id="voiceBtn"
+                                class="text-[11px] font-black text-purple-600 hover:text-purple-700 uppercase"
+                                title="Voice Input (Ctrl+M)">🎙️ Voice</button>
+                            <span class="text-slate-300 dark:text-slate-600">|</span>
+                            <button onclick="pasteText()"
+                                class="text-[11px] font-black text-emerald-600 hover:text-emerald-700 uppercase">📋
+                                Paste</button>
+                            <span class="text-slate-300 dark:text-slate-600">|</span>
+                            <button onclick="clearText('input')"
+                                class="text-[11px] font-black text-red-500 hover:text-red-700 uppercase">Clear</button>
                         </div>
                     </div>
-                    <textarea 
-                        id="mainInput" 
-                        class="w-full h-40 sm:h-56 p-5 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-emerald-500/20 outline-none transition-all text-2xl sm:text-3xl shadow-inner bg-white/50"
-                        placeholder="Type here..."
-                    ></textarea>
+                    <textarea id="mainInput"
+                        class="w-full h-44 sm:h-56 p-5 rounded-2xl border border-slate-200 dark:border-slate-600 focus:ring-4 focus:ring-emerald-500/20 outline-none transition-all text-2xl sm:text-3xl shadow-inner bg-white/50 dark:bg-slate-900/50 dark:text-white resize-none"
+                        placeholder="Type here..." dir="rtl"></textarea>
                 </div>
 
                 <!-- Output Card -->
-                <div class="glass-morphism rounded-3xl p-6 md:p-8 shadow-xl border-b-8 border-blue-500 flex flex-col space-y-6 relative">
-                    
-                    <div id="arabicResultSection" class="animate-in fade-in slide-in-from-top-2">
-                         <div class="flex justify-between items-center mb-2">
-                            <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Arabic Script Result</label>
-                            <button onclick="copyText('outputArabicEditable')" class="text-[10px] font-black text-emerald-600 hover:underline uppercase transition-all">Copy 📋</button>
+                <div
+                    class="glass-morphism dark:glass-dark rounded-3xl p-6 md:p-8 shadow-xl border-b-8 border-blue-500 flex flex-col space-y-5">
+
+                    <div id="arabicResultSection">
+                        <div class="flex justify-between items-center mb-2">
+                            <label
+                                class="text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Arabic
+                                Script</label>
+                            <div class="flex items-center gap-3">
+                                <div class="flex items-center gap-1.5" title="Arabic font size">
+                                    <span class="text-[10px] text-slate-400 font-bold">A</span>
+                                    <input type="range" id="fontSizeSlider" min="18" max="52" value="30"
+                                        class="w-16 cursor-pointer" oninput="changeFontSize(this.value)">
+                                    <span class="text-sm text-slate-400 font-bold">A</span>
+                                </div>
+                                <button onclick="copyText('outputArabicEditable')"
+                                    class="text-[10px] font-black text-emerald-600 hover:underline uppercase">Copy
+                                    📋</button>
+                            </div>
                         </div>
-                        <textarea id="outputArabicEditable" class="w-full p-4 rounded-2xl bg-white border border-slate-200 text-2xl sm:text-3xl arabic-text shadow-inner min-h-[120px] rtl" dir="rtl" oninput="updateTranslitFromArabicEdit()"></textarea>
+                        <textarea id="outputArabicEditable"
+                            class="w-full p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 arabic-text shadow-inner min-h-[110px] rtl dark:text-white"
+                            dir="rtl" oninput="updateTranslitFromArabicEdit()"></textarea>
                     </div>
 
                     <div>
                         <div class="flex justify-between items-center mb-2">
-                            <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Formal Transliteration</label>
-                            <button onclick="copyText('output1')" class="text-[10px] font-black text-blue-600 hover:underline uppercase transition-all">Copy 📋</button>
+                            <label
+                                class="text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Transliteration</label>
+                            <button onclick="copyText('output1')"
+                                class="text-[10px] font-black text-blue-600 hover:underline uppercase">Copy 📋</button>
                         </div>
-                        <textarea id="output1" class="w-full p-4 rounded-2xl bg-white/60 border border-slate-200 text-lg italic leading-relaxed shadow-inner min-h-[100px] ltr" dir="ltr" placeholder="Phonetic output appears here..."></textarea>
+                        <textarea id="output1"
+                            class="w-full p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-600 text-lg italic leading-relaxed shadow-inner min-h-[85px] ltr dark:text-white"
+                            dir="ltr" placeholder="Phonetic output appears here..."></textarea>
+                    </div>
+
+                    <!-- Arabizi Reverse Output -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label
+                                class="text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Arabizi
+                                (Chat Style)</label>
+                            <button onclick="copyText('outputArabizi')"
+                                class="text-[10px] font-black text-orange-500 hover:underline uppercase">Copy
+                                📋</button>
+                        </div>
+                        <textarea id="outputArabizi"
+                            class="w-full p-4 rounded-2xl bg-orange-50/60 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800 text-lg leading-relaxed shadow-inner min-h-[50px] ltr font-mono dark:text-orange-200"
+                            dir="ltr" placeholder="Arabizi reverse output..." readonly></textarea>
+                    </div>
+
+                    <!-- Tajweed Toggle + Output -->
+                    <div>
+                        <label class="flex items-center gap-2 cursor-pointer mb-2">
+                            <input type="checkbox" id="tajweedToggle" onchange="toggleTajweed()"
+                                class="w-4 h-4 accent-emerald-500 cursor-pointer" title="Toggle Tajweed color coding">
+                            <span
+                                class="text-[11px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Tajweed
+                                Color Coding</span>
+                        </label>
+                        <div id="tajweedOutput"
+                            class="hidden w-full p-4 rounded-2xl bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 text-2xl sm:text-3xl arabic-text shadow-inner min-h-[80px] rtl leading-loose">
+                        </div>
                     </div>
 
                     <div id="translationContainer" class="hidden">
-                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest block mb-2">English Meaning (Public API)</label>
-                        <div id="outputTranslation" class="w-full p-5 rounded-2xl bg-purple-50/80 border border-purple-100 text-base sm:text-lg leading-relaxed text-slate-800 ltr italic" dir="ltr"></div>
-                    </div>
-
-                    <!-- Local Knowledge Base Container -->
-                    <div id="aiInsightsContainer" class="hidden mt-2 p-6 rounded-2xl bg-blue-50 border border-blue-100 shadow-sm animate-in zoom-in-95 duration-300">
-                        <div class="flex justify-between items-start mb-3">
-                            <span class="text-[11px] font-black text-blue-800 uppercase tracking-widest italic flex items-center gap-2">📚 Local Dictionary Insight</span>
-                            <button onclick="document.getElementById('aiInsightsContainer').classList.add('hidden')" class="text-blue-400 hover:text-blue-600 text-lg">✕</button>
+                        <div class="flex justify-between items-center mb-2">
+                            <label
+                                class="text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Translation
+                                (Public API)</label>
+                            <button id="quranAudioBtn" onclick="playQuranAudio()"
+                                class="hidden px-3 py-1 bg-emerald-600 text-white rounded-full text-[10px] font-black hover:bg-emerald-700">🔊
+                                Listen</button>
                         </div>
-                        <div id="aiInsightsContent" class="text-sm sm:text-base text-blue-900 leading-relaxed italic ltr" dir="ltr"></div>
+                        <div id="outputTranslation"
+                            class="w-full p-4 rounded-2xl bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800 text-base leading-relaxed text-slate-800 dark:text-slate-200 ltr italic"
+                            dir="ltr"></div>
+                        <audio id="quranAudioPlayer" class="hidden w-full mt-3" controls></audio>
                     </div>
 
-                    <div id="copyBadge" class="hidden text-center text-emerald-600 text-xs font-black animate-bounce">Copied successfully! ✅</div>
+                    <div id="aiInsightsContainer"
+                        class="hidden p-5 rounded-2xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 shadow-sm">
+                        <div class="flex justify-between items-start mb-3">
+                            <span
+                                class="text-[11px] font-black text-blue-800 dark:text-blue-300 uppercase tracking-widest">📚
+                                Linguistic Root Insight</span>
+                            <button onclick="document.getElementById('aiInsightsContainer').classList.add('hidden')"
+                                class="text-blue-400 hover:text-blue-600 text-lg leading-none">✕</button>
+                        </div>
+                        <div id="aiInsightsContent"
+                            class="text-sm text-blue-900 dark:text-blue-200 leading-relaxed italic ltr" dir="ltr"></div>
+                    </div>
+
+                    <!-- Word-by-Word Breakdown -->
+                    <div id="wordByWordContainer"
+                        class="hidden p-5 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 shadow-sm">
+                        <div class="flex justify-between items-start mb-3">
+                            <span
+                                class="text-[11px] font-black text-indigo-800 dark:text-indigo-300 uppercase tracking-widest">🔤
+                                Word-by-Word Breakdown</span>
+                            <button onclick="document.getElementById('wordByWordContainer').classList.add('hidden')"
+                                class="text-indigo-400 hover:text-indigo-600 text-lg">✕</button>
+                        </div>
+                        <div id="wordByWordGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 rtl"></div>
+                    </div>
                 </div>
             </div>
 
             <!-- Keyboard Section -->
-            <div id="keyboardSection" class="glass-morphism rounded-3xl p-6 md:p-8 shadow-xl border-b-8 border-slate-400 overflow-hidden transition-all duration-300">
-                <div class="flex items-center justify-between mb-5 border-b border-slate-100 pb-3">
-                    <div class="flex items-center gap-3 text-slate-700">
+            <div id="keyboardSection"
+                class="glass-morphism dark:glass-dark rounded-3xl p-6 md:p-8 shadow-xl border-b-8 border-slate-400 overflow-hidden">
+                <div
+                    class="flex items-center justify-between mb-5 border-b border-slate-100 dark:border-slate-700 pb-3">
+                    <div class="flex items-center gap-3 text-slate-700 dark:text-slate-300">
                         <span class="text-2xl">⌨️</span>
                         <span class="text-sm font-black uppercase tracking-widest">Arabic Virtual Keyboard</span>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="setKeyboardTheme('white')" class="w-8 h-8 rounded-full bg-white border border-slate-300 shadow-sm" title="White Theme"></button>
-                        <button onclick="setKeyboardTheme('black')" class="w-8 h-8 rounded-full bg-slate-800 shadow-sm" title="Black Theme"></button>
+                        <button onclick="setKeyboardTheme('white')"
+                            class="w-8 h-8 rounded-full bg-white border border-slate-300 shadow-sm hover:scale-110 transition-transform"
+                            title="White Theme"></button>
+                        <button onclick="setKeyboardTheme('black')"
+                            class="w-8 h-8 rounded-full bg-slate-800 shadow-sm hover:scale-110 transition-transform"
+                            title="Black Theme"></button>
                     </div>
                 </div>
-                <div id="keyboardGrid" class="grid grid-cols-6 sm:grid-cols-10 md:grid-cols-12 lg:grid-cols-14 gap-2 p-1"></div>
+                <div id="keyboardGrid"
+                    class="grid grid-cols-6 sm:grid-cols-10 md:grid-cols-12 lg:grid-cols-14 gap-2 p-1"></div>
             </div>
+
+            <!-- Custom Dictionary -->
+            <div class="glass-morphism dark:glass-dark rounded-3xl p-6 md:p-8 shadow-xl border-b-8 border-amber-300">
+                <div class="flex items-center justify-between mb-5 border-b border-slate-100 dark:border-slate-700 pb-3 cursor-pointer"
+                    onclick="toggleCustomDictPanel()">
+                    <div class="flex items-center gap-3 text-slate-700 dark:text-slate-300"><span
+                            class="text-2xl">📝</span><span class="text-sm font-black uppercase tracking-widest">My
+                            Custom Dictionary</span></div>
+                    <span id="customDictArrow" class="text-slate-400 text-lg transition-transform duration-300">▼</span>
+                </div>
+                <div id="customDictPanel" class="hidden space-y-4">
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <input type="text" id="customDictKey" placeholder="Arabizi key (e.g. yasalam)"
+                            class="flex-1 p-3 rounded-xl border border-slate-200 dark:border-slate-600 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-amber-500">
+                        <input type="text" id="customDictValue" placeholder="Arabic value (e.g. يا سلام)" dir="rtl"
+                            class="flex-1 p-3 rounded-xl border border-slate-200 dark:border-slate-600 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-amber-500 arabic-text">
+                        <button onclick="addCustomDictEntry()"
+                            class="px-6 py-3 bg-amber-500 text-white rounded-xl text-sm font-black hover:bg-amber-600 transition-all shadow-md">+
+                            Add</button>
+                    </div>
+                    <div id="customDictList" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
+                    <p id="customDictEmpty" class="text-sm text-slate-400 italic text-center py-4">No custom entries
+                        yet.</p>
+                </div>
+            </div>
+
+            <!-- History Panel -->
+            <div class="glass-morphism dark:glass-dark rounded-3xl p-6 md:p-8 shadow-xl border-b-8 border-amber-400">
+                <div
+                    class="flex items-center justify-between mb-5 border-b border-slate-100 dark:border-slate-700 pb-3">
+                    <div class="flex items-center gap-3 text-slate-700 dark:text-slate-300">
+                        <span class="text-2xl">📜</span>
+                        <span class="text-sm font-black uppercase tracking-widest">History & Saved</span>
+                    </div>
+                    <button onclick="clearAllHistory()"
+                        class="text-[10px] font-black text-red-500 hover:text-red-700 uppercase">Clear All</button>
+                </div>
+                <div id="historyList" class="space-y-3 max-h-72 overflow-y-auto pr-1">
+                    <p id="historyEmpty" class="text-center text-slate-400 dark:text-slate-500 text-sm italic py-4">No
+                        history yet. Use ⭐ Save to store a transliteration.</p>
+                </div>
+            </div>
+
         </div>
-        
-        <footer class="mt-12 sm:mt-16 text-center text-slate-400 text-xs space-y-3 font-medium">
-            <p>“And We have certainly made the Quran easy for remembrance...” (54:17)</p>
-            <p>© Noor Transliterate • Zero-API Architecture</p>
+
+        <footer class="mt-12 text-center text-slate-400 dark:text-slate-600 text-xs space-y-2 font-medium pb-6">
+            <p class="italic">"And We have certainly made the Quran easy for remembrance..." (54:17)</p>
+            <p>© Noor Transliterate v2 • Offline-First PWA • Zero Data Collection</p>
         </footer>
     </div>
 
+    <!-- Toast -->
+    <div id="toastNotification"
+        class="fixed bottom-6 right-6 px-5 py-3 bg-slate-900 dark:bg-emerald-700 text-white rounded-2xl shadow-2xl transform translate-y-[150%] opacity-0 transition-all duration-500 font-bold z-50 pointer-events-none flex items-center gap-2 text-sm">
+        <span id="toastMsg">Done!</span>
+    </div>
+
+    <!-- Keyboard Shortcuts Modal -->
+    <div id="shortcutsModal"
+        class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div
+            class="bg-white dark:bg-slate-800 rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl border border-slate-200 dark:border-slate-700">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-extrabold text-slate-800 dark:text-white">⌨️ Keyboard Shortcuts</h2>
+                <button onclick="toggleShortcutsModal()" class="text-slate-400 hover:text-slate-600 text-2xl">✕</button>
+            </div>
+            <div class="space-y-3 text-sm">
+                <div class="flex justify-between"><span class="text-slate-600 dark:text-slate-400">Auto-Correct
+                        Harakat</span><kbd
+                        class="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded font-mono text-xs">Ctrl+Enter</kbd>
+                </div>
+                <div class="flex justify-between"><span class="text-slate-600 dark:text-slate-400">Copy Arabic
+                        Output</span><kbd
+                        class="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded font-mono text-xs">Ctrl+Shift+C</kbd>
+                </div>
+                <div class="flex justify-between"><span class="text-slate-600 dark:text-slate-400">Focus Quran
+                        Search</span><kbd
+                        class="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded font-mono text-xs">Ctrl+K</kbd></div>
+                <div class="flex justify-between"><span class="text-slate-600 dark:text-slate-400">Toggle Dark
+                        Mode</span><kbd
+                        class="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded font-mono text-xs">Ctrl+D</kbd></div>
+                <div class="flex justify-between"><span class="text-slate-600 dark:text-slate-400">Voice
+                        Input</span><kbd
+                        class="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded font-mono text-xs">Ctrl+M</kbd></div>
+                <div class="flex justify-between"><span class="text-slate-600 dark:text-slate-400">Save to
+                        History</span><kbd
+                        class="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded font-mono text-xs">Ctrl+S</kbd></div>
+                <div class="flex justify-between"><span class="text-slate-600 dark:text-slate-400">Show
+                        Shortcuts</span><kbd
+                        class="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded font-mono text-xs">Ctrl+/</kbd></div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        let currentMode = 'standard';
-        let surahData = [];
-
-        const mainInput = document.getElementById('mainInput');
-        const output1 = document.getElementById('output1');
-        const outputArabicEditable = document.getElementById('outputArabicEditable');
-        const arabicResultSection = document.getElementById('arabicResultSection');
-        const translationContainer = document.getElementById('translationContainer');
-        const outputTranslation = document.getElementById('outputTranslation');
-        const inputLabel = document.getElementById('inputLabel');
-        const apiLoading = document.getElementById('apiLoading');
-        const quranResults = document.getElementById('quranResults');
-        const keyboardGrid = document.getElementById('keyboardGrid');
-        const keyboardSection = document.getElementById('keyboardSection');
-        const aiInsightsContainer = document.getElementById('aiInsightsContainer');
-        const aiInsightsContent = document.getElementById('aiInsightsContent');
-
-        // --- THE EMBEDDED DATABASE (v5.0) ---
-        // Maps unvoweled text / Arabizi to perfectly voweled (Harakat) Arabic strings.
-        const embeddedDictionary = {
-            // Arabizi to Arabic Match
-            "bismillah": "بِسْمِ اللَّهِ",
-            "alhamdulillah": "الْحَمْدُ لِلَّهِ",
-            "subhanallah": "سُبْحَانَ اللَّهِ",
-            "allahuakbar": "اللَّهُ أَكْبَرُ",
-            "salam": "سَلَام",
-            "assalamualaikum": "السَّلَامُ عَلَيْكُمْ",
-            "salamalaykum": "السَّلَامُ عَلَيْكُمْ",
-            "mashallah": "مَا شَاءَ اللَّهُ",
-            "inshallah": "إِنْ شَاءَ اللَّهُ",
-            "astaghfirullah": "أَسْتَغْفِرُ اللَّهَ",
-            "allah": "اللَّهُ",
-            "muhammad": "مُحَمَّدٌ",
-            "ali": "عَلِيٌّ",
-            "hasan": "حَسَنٌ",
-            "husayn": "حُسَيْنٌ",
-            "hussain": "حُسَيْنٌ",
-            "fatima": "فَاطِمَةُ",
-            "zahra": "الزَّهْرَاءُ",
-            "quran": "قُرْآن",
-            "dua": "دُعَاء",
-            "salat": "صَلَاة",
-            "zakat": "زَكَاة",
-
-            // Unvoweled Arabic to Voweled Arabic Match
-            "بسم الله": "بِسْمِ اللَّهِ",
-            "الحمد لله": "الْحَمْدُ لِلَّهِ",
-            "سبحان الله": "سُبْحَانَ اللَّهِ",
-            "الله اكبر": "اللَّهُ أَكْبَرُ",
-            "السلام عليكم": "السَّلَامُ عَلَيْكُمْ",
-            "ما شاء الله": "مَا شَاءَ اللَّهُ",
-            "ان شاء الله": "إِنْ شَاءَ اللَّهُ",
-            "إن شاء الله": "إِنْ شَاءَ اللَّهُ",
-            "استغفر الله": "أَسْتَغْفِرُ اللَّهَ",
-            "الله": "اللَّهُ",
-            "محمد": "مُحَمَّدٌ",
-            "علي": "عَلِيٌّ",
-            "حسن": "حَسَنٌ",
-            "حسين": "حُسَيْنٌ",
-            "فاطمة": "فَاطِمَةُ",
-            "قران": "قُرْآن",
-            "القرآن": "الْقُرْآن",
-            "دعاء": "دُعَاء",
-            "صلاة": "صَلَاة"
-        };
-
-        // Embedded Knowledge Base for Reflections
-        const reflectionDictionary = {
-            "allah": "The supreme name of God. Root: A-L-H. Denotes the One who is worshipped and to whom all creation submits.",
-            "الله": "The supreme name of God. Root: A-L-H. Denotes the One who is worshipped and to whom all creation submits.",
-            "salam": "Root: S-L-M. Denotes peace, safety, and submission. It is one of the foundational Names of Allah (As-Salam).",
-            "سلام": "Root: S-L-M. Denotes peace, safety, and submission. It is one of the foundational Names of Allah (As-Salam).",
-            "bismillah": "Root: S-M-W (Name) and A-L-H (God). The invocation of grace and beginning all actions through Divine permission.",
-            "بسم الله": "Root: S-M-W (Name) and A-L-H (God). The invocation of grace and beginning all actions through Divine permission.",
-            "alhamdulillah": "Root: H-M-D. Encompasses both intense praise and absolute gratitude. It recognizes that all perfection and blessings originate exclusively from the Creator.",
-            "الحمد لله": "Root: H-M-D. Encompasses both intense praise and absolute gratitude. It recognizes that all perfection and blessings originate exclusively from the Creator.",
-            "muhammad": "Root: H-M-D. The intensely praised one. The name of the final Messenger (saw).",
-            "محمد": "Root: H-M-D. The intensely praised one. The name of the final Messenger (saw).",
-            "ali": "Root: '-L-W. The exalted, the high. Represents spiritual elevation and profound truth.",
-            "علي": "Root: '-L-W. The exalted, the high. Represents spiritual elevation and profound truth.",
-            "husayn": "Root: H-S-N. The diminutive form of Hasan, meaning 'the beautiful one' in inner character and outer form.",
-            "حسين": "Root: H-S-N. The diminutive form of Hasan, meaning 'the beautiful one' in inner character and outer form.",
-            "rahmah": "Root: R-H-M. Womb, unconditional grace. The fundamental paradigm of the Creator's interaction with creation."
-        };
-
-        // Standard Keyboard Keys
-        const keys = [
-            '\u064E', '\u064F', '\u0650', '\u0651', '\u0652', '\u064B', '\u064C', '\u064D', '\u0670',
-            'ض', 'ص', 'ث', 'ق', 'ف', 'غ', 'ع', 'ه', 'خ', 'ح', 'ج', 'د',
-            'ش', 'س', 'ي', 'ب', 'ل', 'ا', 'ت', 'ن', 'م', 'ك', 'ط',
-            'ئ', 'ء', 'ؤ', 'ر', 'لا', 'ى', 'ة', 'و', 'ز', 'ظ', 'ذ',
-            '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩', '٠',
-            'Space', 'Bksp'
-        ];
-
-        // Core Fallback Mappings
-        const arToEn = { 
-            'ا': 'a', 'أ': 'a', 'إ': 'i', 'آ': 'ā', 'ب': 'b', 'ت': 't', 'ث': 'th', 'ج': 'j', 'ح': 'ḥ', 'خ': 'kh', 'د': 'd', 'ذ': 'dh', 'ر': 'r', 'ز': 'z', 'س': 's', 'ش': 'sh', 'ص': 'ṣ', 'ض': 'ḍ', 'ط': 'ṭ', 'ظ': 'ẓ', 'ع': '‘', 'غ': 'gh', 'ف': 'f', 'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n', 'ه': 'h', 'و': 'w', 'ي': 'y', 'ة': 'h', 'ى': 'ā', 'ء': "'", 'ئ': "'", 'ؤ': "'", 
-            '\u064E': 'a', '\u064F': 'u', '\u0650': 'i', '\u0651': '', '\u0652': '', '\u064B': 'an', '\u064C': 'un', '\u064D': 'in', '\u0670': 'ā' 
-        };
-        const chatToAr = { "3'": "غ", "3*": "غ", "gh": "غ", "6'": "ظ", "6*": "ظ", "zh": "ظ", "9'": "ض", "9*": "ض", "dh": "ض", "7'": "خ", "7*": "خ", "kh": "خ", "5": "خ", "sh": "ش", "ch": "ش", "4": "ش", "th": "ث", "ee": "ي", "oo": "و", "ou": "و", "uu": "و", "aa": "ا", "2": "أ", "3": "ع", "6": "ط", "7": "ح", "8": "ق", "9": "ص", "a": "ا", "b": "ب", "t": "ت", "j": "ج", "d": "د", "r": "ر", "z": "ز", "s": "س", "f": "ف", "k": "ك", "l": "ل", "m": "م", "n": "n", "h": "ه", "w": "و", "y": "ي", "i": "ي", "u": "و", "e": "ا", "o": "و" };
-
-        function setKeyboardTheme(theme) {
-            keyboardSection.classList.remove('kb-theme-white', 'kb-theme-black');
-            keyboardSection.classList.add('kb-theme-' + theme);
-            localStorage.setItem('kb_theme', theme);
-        }
-
-        // --- NEW: Local Database Lookups ---
-        
-        function autoCorrectText() {
-            let text = mainInput.value.trim();
-            if (!text) return;
-
-            let words = text.split(/\s+/);
-            let resultWords = [];
-            let i = 0;
-
-            // Sliding window to detect 3-word, 2-word, or 1-word matches in the dictionary
-            while(i < words.length) {
-                let matchFound = false;
-                
-                if (i <= words.length - 3) {
-                    let phrase = [words[i], words[i+1], words[i+2]].join(" ");
-                    if (embeddedDictionary[phrase.toLowerCase()]) {
-                        resultWords.push(embeddedDictionary[phrase.toLowerCase()]);
-                        i += 3; matchFound = true; continue;
-                    }
-                }
-                
-                if (!matchFound && i <= words.length - 2) {
-                    let phrase = [words[i], words[i+1]].join(" ");
-                    if (embeddedDictionary[phrase.toLowerCase()]) {
-                        resultWords.push(embeddedDictionary[phrase.toLowerCase()]);
-                        i += 2; matchFound = true; continue;
-                    }
-                }
-                
-                if (!matchFound) {
-                    let word = words[i].toLowerCase();
-                    if (embeddedDictionary[word]) {
-                        resultWords.push(embeddedDictionary[word]);
-                    } else {
-                        resultWords.push(words[i]); // Keep original if no match
-                    }
-                    i++;
-                }
-            }
-
-            mainInput.value = resultWords.join(" ");
-            process(); // Trigger UI updates
-        }
-
-        function localReflectText() {
-            const input = mainInput.value.toLowerCase();
-            if(!input.trim()) return;
-
-            let reflection = "No specific linguistic root found for this phrase in the offline dictionary. Try inputting foundational words like 'Allah', 'Bismillah', 'Salam', or 'Alhamdulillah'.";
-
-            // Search input string against keys in our local reflection database
-            for (const key in reflectionDictionary) {
-                if (input.includes(key)) {
-                    reflection = reflectionDictionary[key];
-                    break;
-                }
-            }
-
-            aiInsightsContent.innerText = reflection;
-            aiInsightsContainer.classList.remove('hidden');
-        }
-
-        // --- Native Browser Voice (100% Free, Offline) ---
-        function speakTextNative() {
-            const input = outputArabicEditable.value.trim() || mainInput.value.trim();
-            if(!input) return;
-
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(input);
-            utterance.lang = 'ar-SA'; 
-            utterance.rate = 0.85; 
-            
-            let voices = window.speechSynthesis.getVoices();
-            if(voices.length !== 0) {
-                 window.speechSynthesis.speak(utterance);
-            } else {
-                 window.speechSynthesis.onvoiceschanged = () => {
-                     window.speechSynthesis.speak(utterance);
-                 };
-            }
-        }
-
-        // --- Core Deterministic Engine ---
-        function performFormalTransliteration(text) {
-            let res = "";
-            for (let i = 0; i < text.length; i++) {
-                const char = text[i], next = text[i+1];
-                if (next === '\u0651') { res += (arToEn[char] || "") + (arToEn[char] || ""); i++; continue; }
-                if (char === 'ا' && next === 'ل' && (i === 0 || text[i-1] === ' ')) { res += "al-"; i++; continue; }
-                const translated = arToEn[char];
-                res += (translated !== undefined) ? translated : char;
-            }
-            return res.charAt(0).toUpperCase() + res.slice(1);
-        }
-
-        function process() {
-            const text = mainInput.value;
-            if (!text.trim()) { 
-                output1.value = "Waiting..."; 
-                outputArabicEditable.value = ""; 
-                return; 
-            }
-
-            if (currentMode === 'standard' || currentMode === 'quran') {
-                if(translationContainer.classList.contains('hidden')) {
-                    outputArabicEditable.value = text;
-                    output1.value = performFormalTransliteration(text);
-                }
-            } else {
-                let arabicBuild = "";
-                text.split(/(\s+)/).forEach((part) => {
-                    if (!part) return;
-                    if (/\s+/.test(part)) { arabicBuild += part; return; }
-                    arabicBuild += convertWordToArabic(part.toLowerCase());
-                });
-                outputArabicEditable.value = arabicBuild;
-                output1.value = performFormalTransliteration(arabicBuild);
-            }
-        }
-
-        function updateTranslitFromArabicEdit() { 
-            output1.value = performFormalTransliteration(outputArabicEditable.value); 
-        }
-
-        function convertWordToArabic(word) {
-            let w = "", j = 0;
-            const sortedKeys = Object.keys(chatToAr).sort((a, b) => b.length - a.length);
-            if (word.startsWith('al-')) { w += "ال"; j = 3; }
-            while(j < word.length) {
-                let matched = false;
-                for (const key of sortedKeys) { 
-                    if (word.substr(j, key.length) === key) { 
-                        w += chatToAr[key]; j += key.length; matched = true; break; 
-                    } 
-                }
-                if (!matched) { w += word[j]; j++; }
-            }
-            return w;
-        }
-
-        // --- Free Public API Integration (Alquran.cloud) ---
-        async function handleUnifiedSearch() {
-            const query = document.getElementById('quranKeyword').value.trim();
-            if (!query) return;
-            apiLoading.classList.remove('hidden');
-            document.getElementById('apiLoadingText').innerText = "Fetching Divine Verses...";
-            
-            try {
-                const refMatch = query.match(/^(\d+):(\d+)$/);
-                if (refMatch) {
-                    const response = await fetch(`https://api.alquran.cloud/v1/ayah/${query}/editions/quran-uthmani,en.transliteration,en.sahih`);
-                    const data = await response.json();
-                    if(data.code === 200) {
-                        mainInput.value = data.data[0].text;
-                        outputArabicEditable.value = data.data[0].text;
-                        output1.value = data.data[1].text; 
-                        outputTranslation.innerText = data.data[2].text; 
-                        
-                        translationContainer.classList.remove('hidden');
-                        quranResults.classList.add('hidden');
-                    }
-                } else {
-                    const response = await fetch(`https://api.alquran.cloud/v1/search/${query}/all/en.sahih`);
-                    const data = await response.json();
-                    quranResults.innerHTML = "";
-                    if(data.code === 200 && data.data.matches.length > 0) {
-                        quranResults.classList.remove('hidden');
-                        data.data.matches.slice(0, 10).forEach(m => {
-                            const div = document.createElement('div');
-                            div.className = "p-4 rounded-2xl border border-emerald-100 cursor-pointer text-xs mb-2 transition-all bg-white hover:border-emerald-500 shadow-sm";
-                            div.innerHTML = `<div class="font-black text-emerald-700 uppercase">${m.surah.englishName} (${m.surah.number}:${m.numberInSurah})</div><p class="text-slate-600 line-clamp-2">${m.text}</p>`;
-                            div.onclick = () => { document.getElementById('quranKeyword').value = `${m.surah.number}:${m.numberInSurah}`; handleUnifiedSearch(); };
-                            quranResults.appendChild(div);
-                        });
-                    } else {
-                        quranResults.classList.remove('hidden');
-                        quranResults.innerHTML = "<div class='text-sm text-slate-500 text-center p-4'>No results found.</div>";
-                    }
-                }
-            } catch (e) {
-                console.error(e);
-            } finally { 
-                apiLoading.classList.add('hidden'); 
-            }
-        }
-
-        async function fetchQuranMetadata() {
-            try {
-                const response = await fetch('https://api.alquran.cloud/v1/surah');
-                const data = await response.json();
-                surahData = data.data;
-                const sSelect = document.getElementById('pickSurah');
-                sSelect.innerHTML = '<option value="">Select Surah</option>';
-                surahData.forEach(s => { sSelect.innerHTML += `<option value="${s.number}">${s.number}. ${s.englishName}</option>`; });
-                const jSelect = document.getElementById('pickJuz');
-                jSelect.innerHTML = '<option value="">Select Juz</option>';
-                for(let i=1; i<=30; i++) { jSelect.innerHTML += `<option value="${i}">Juz ${i}</option>`; }
-            } catch (e) {
-                console.error("Failed to load Surah metadata");
-            }
-        }
-
-        function handleJuzChange() { const juz = document.getElementById('pickJuz').value; if(juz) fetchVerseByRef(`juz/${juz}/quran-uthmani`); }
-        function handleSurahChange() {
-            const surahNum = document.getElementById('pickSurah').value;
-            const aSelect = document.getElementById('pickAyah');
-            aSelect.innerHTML = '<option value="">Ayah</option>';
-            if(!surahNum) return;
-            const s = surahData.find(x => x.number == surahNum);
-            for(let i=1; i<=s.numberOfAyahs; i++) { aSelect.innerHTML += `<option value="${i}">${i}</option>`; }
-        }
-        function handleAyahChange() {
-            const surah = document.getElementById('pickSurah').value;
-            const ayah = document.getElementById('pickAyah').value;
-            if(surah && ayah) fetchVerseByRef(`${surah}:${ayah}`);
-        }
-        async function fetchVerseByRef(ref) { document.getElementById('quranKeyword').value = ref; handleUnifiedSearch(); }
-
-        // --- App Lifecycle ---
-        function setMode(mode) {
-            currentMode = mode;
-            document.querySelectorAll('[id^="mode"]').forEach(b => b.classList.remove('active-tab'));
-            document.getElementById('mode' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.add('active-tab');
-            document.getElementById('quranPickContainer').classList.toggle('hidden', mode !== 'quran');
-            mainInput.style.textAlign = (mode === 'arabizi') ? 'left' : 'right';
-            mainInput.setAttribute('dir', (mode === 'arabizi') ? 'ltr' : 'rtl');
-            process();
-        }
-
-        function initKeyboard() {
-            keyboardGrid.innerHTML = "";
-            keys.forEach(key => {
-                const btn = document.createElement('button');
-                let fontSize = "text-xl sm:text-3xl"; 
-                if (key === 'Space' || key === 'Bksp') fontSize = "text-[10px] uppercase tracking-tighter";
-                if (key === 'لا') fontSize = "text-lg";
-                btn.className = `keyboard-key p-2 sm:p-3 rounded-xl font-bold shadow-sm ${fontSize}`;
-                btn.innerText = key;
-                btn.onclick = () => {
-                    const s = mainInput.selectionStart, v = mainInput.value;
-                    if (key === 'Bksp') { mainInput.value = v.substring(0, Math.max(0, s - 1)) + v.substring(s); mainInput.selectionStart = mainInput.selectionEnd = Math.max(0, s - 1); }
-                    else if (key === 'Space') { mainInput.value = v.substring(0, s) + ' ' + v.substring(s); mainInput.selectionStart = mainInput.selectionEnd = s + 1; }
-                    else { mainInput.value = v.substring(0, s) + key + v.substring(s); mainInput.selectionStart = mainInput.selectionEnd = s + key.length; }
-                    mainInput.focus(); process();
-                };
-                keyboardGrid.appendChild(btn);
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
             });
-            setKeyboardTheme(localStorage.getItem('kb_theme') || 'white');
         }
-
-        function pasteText() { navigator.clipboard.readText().then(t => { mainInput.value += t; process(); }).catch(() => alert("Paste manually with Ctrl+V")); }
-        function clearText(t) {
-            if(t === 'input') { mainInput.value = ""; outputArabicEditable.value = ""; process(); translationContainer.classList.add('hidden'); }
-            else { output1.value = "Waiting..."; outputTranslation.innerText = ""; translationContainer.classList.add('hidden'); }
-        }
-        function copyText(id) {
-            const el = document.getElementById(id);
-            const val = el.tagName === 'TEXTAREA' ? el.value : el.innerText;
-            if(!val || val === "Waiting...") return;
-            const temp = document.createElement('textarea'); temp.value = val; document.body.appendChild(temp); temp.select(); document.execCommand('copy'); document.body.removeChild(temp);
-            document.getElementById('copyBadge').classList.remove('hidden'); setTimeout(() => document.getElementById('copyBadge').classList.add('hidden'), 2000);
-        }
-
-        window.addEventListener('load', () => { 
-            initKeyboard(); 
-            fetchQuranMetadata(); 
-            setMode('standard'); 
-        });
-        
-        mainInput.addEventListener('input', () => {
-            translationContainer.classList.add('hidden'); 
-            process();
-        });
     </script>
+    <script src="app.js"></script>
+    <script src="app2.js"></script>
 </body>
+
 </html>
