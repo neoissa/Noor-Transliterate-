@@ -1,6 +1,6 @@
 // =====================================================================
 // Noor Transliterate v3 — app2.js — Features Part 2
-// City Clocks, Quran API, Daily Ayah, Custom Dict, Word-by-Word,
+// Quran API, Daily Ayah, Custom Dict, Word-by-Word,
 // Tajweed, Themes, Export, Shortcuts, PWA Install, Lifecycle
 // =====================================================================
 
