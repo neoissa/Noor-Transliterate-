@@ -5,126 +5,6 @@
 // =====================================================================
 
 // =====================================================================
-// CITY COUNTDOWN DATA
-// =====================================================================
-var cityDatabase = {
-    "Najaf, Iraq": { tz: "Asia/Baghdad", emoji: "🕌", offset: 3 },
-    "Tehran, Iran": { tz: "Asia/Tehran", emoji: "🇮🇷", offset: 3.5 },
-    "Mecca, Saudi Arabia": { tz: "Asia/Riyadh", emoji: "🕋", offset: 3 },
-    "Medina, Saudi Arabia": { tz: "Asia/Riyadh", emoji: "🕌", offset: 3 },
-    "Istanbul, Turkey": { tz: "Europe/Istanbul", emoji: "🇹🇷", offset: 3 },
-    "Cairo, Egypt": { tz: "Africa/Cairo", emoji: "🇪🇬", offset: 2 },
-    "London, UK": { tz: "Europe/London", emoji: "🇬🇧", offset: 0 },
-    "New York, USA": { tz: "America/New_York", emoji: "🇺🇸", offset: -5 },
-    "Los Angeles, USA": { tz: "America/Los_Angeles", emoji: "🇺🇸", offset: -8 },
-    "Dubai, UAE": { tz: "Asia/Dubai", emoji: "🇦🇪", offset: 4 },
-    "Islamabad, Pakistan": { tz: "Asia/Karachi", emoji: "🇵🇰", offset: 5 },
-    "Jakarta, Indonesia": { tz: "Asia/Jakarta", emoji: "🇮🇩", offset: 7 },
-    "Kuala Lumpur, Malaysia": { tz: "Asia/Kuala_Lumpur", emoji: "🇲🇾", offset: 8 },
-    "Paris, France": { tz: "Europe/Paris", emoji: "🇫🇷", offset: 1 },
-    "Berlin, Germany": { tz: "Europe/Berlin", emoji: "🇩🇪", offset: 1 },
-    "Toronto, Canada": { tz: "America/Toronto", emoji: "🇨🇦", offset: -5 },
-    "Sydney, Australia": { tz: "Australia/Sydney", emoji: "🇦🇺", offset: 11 },
-    "Beirut, Lebanon": { tz: "Asia/Beirut", emoji: "🇱🇧", offset: 2 },
-    "Baghdad, Iraq": { tz: "Asia/Baghdad", emoji: "🇮🇶", offset: 3 },
-    "Qom, Iran": { tz: "Asia/Tehran", emoji: "🕌", offset: 3.5 },
-    "Karbala, Iraq": { tz: "Asia/Baghdad", emoji: "🕌", offset: 3 }
-};
-var activeCities = [];
-
-// =====================================================================
-// CITY CLOCKS & COUNTDOWN
-// =====================================================================
-function initCityClocks() {
-    activeCities = JSON.parse(localStorage.getItem('noor_cities') || '[]');
-    if (activeCities.length === 0) activeCities = ["Najaf, Iraq", "Tehran, Iran"];
-    saveCities();
-    populateCityDropdown();
-    renderCityClocks();
-    setInterval(updateCityClocks, 1000);
-}
-
-function saveCities() { localStorage.setItem('noor_cities', JSON.stringify(activeCities)); }
-
-function populateCityDropdown() {
-    const sel = document.getElementById('addCitySelect');
-    sel.innerHTML = '<option value="">+ Add City</option>';
-    Object.keys(cityDatabase).forEach(c => {
-        if (!activeCities.includes(c)) {
-            sel.innerHTML += `<option value="${c}">${cityDatabase[c].emoji} ${c}</option>`;
-        }
-    });
-}
-
-function addSelectedCity() {
-    const sel = document.getElementById('addCitySelect');
-    if (!sel.value) return;
-    activeCities.push(sel.value);
-    saveCities(); populateCityDropdown(); renderCityClocks();
-    showToast(`🕐 ${sel.value} added!`);
-}
-
-function removeCity(city) {
-    activeCities = activeCities.filter(c => c !== city);
-    saveCities(); populateCityDropdown(); renderCityClocks();
-}
-
-function renderCityClocks() {
-    const grid = document.getElementById('cityClockGrid');
-    grid.innerHTML = '';
-    activeCities.forEach(city => {
-        const info = cityDatabase[city];
-        if (!info) return;
-        const div = document.createElement('div');
-        div.className = 'city-clock-card rounded-2xl p-5 shadow-md relative';
-        div.id = 'clock-' + city.replace(/[\s,]/g, '-');
-        div.innerHTML = `
-            <button onclick="removeCity('${city}')" class="absolute top-3 right-3 text-slate-300 hover:text-red-500 text-sm transition-all">✕</button>
-            <div class="flex items-center gap-2 mb-3">
-                <span class="text-2xl">${info.emoji}</span>
-                <span class="text-sm font-extrabold text-slate-700 dark:text-slate-200">${city}</span>
-            </div>
-            <div class="clock-time text-4xl font-extrabold text-slate-800 dark:text-white mb-2" id="time-${city.replace(/[\s,]/g, '-')}">--:--:--</div>
-            <div class="flex items-center gap-2">
-                <span class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">Date:</span>
-                <span class="text-xs text-slate-500 dark:text-slate-400" id="date-${city.replace(/[\s,]/g, '-')}">---</span>
-            </div>
-            <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
-                <span class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">Midnight Countdown</span>
-                <div class="clock-time text-lg font-bold accent-text countdown-pulse mt-1" id="countdown-${city.replace(/[\s,]/g, '-')}">--:--:--</div>
-            </div>`;
-        grid.appendChild(div);
-    });
-    updateCityClocks();
-}
-
-function updateCityClocks() {
-    activeCities.forEach(city => {
-        const info = cityDatabase[city];
-        if (!info) return;
-        const id = city.replace(/[\s,]/g, '-');
-        try {
-            const now = new Date();
-            const cityTime = new Date(now.toLocaleString('en-US', { timeZone: info.tz }));
-            const timeEl = document.getElementById('time-' + id);
-            const dateEl = document.getElementById('date-' + id);
-            const cdEl = document.getElementById('countdown-' + id);
-            if (timeEl) timeEl.textContent = cityTime.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            if (dateEl) dateEl.textContent = cityTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-            if (cdEl) {
-                const midnight = new Date(cityTime);
-                midnight.setHours(24, 0, 0, 0);
-                const diff = midnight - cityTime;
-                const h = Math.floor(diff / 3600000);
-                const m = Math.floor((diff % 3600000) / 60000);
-                const s = Math.floor((diff % 60000) / 1000);
-                cdEl.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-            }
-        } catch (e) { /* timezone not supported */ }
-    });
-}
-
-// =====================================================================
 // DAILY AYAH
 // =====================================================================
 async function fetchDailyAyah(forceNew) {
@@ -410,7 +290,6 @@ window.addEventListener('load', () => {
     setMode('standard');
     renderHistory();
     renderCustomDict();
-    initCityClocks();
 
     // Dark mode
     if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
